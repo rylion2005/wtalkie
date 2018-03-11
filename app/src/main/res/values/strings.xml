@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">WTalkie</string>
+
+    <!-- Main Activity -->
+    <string name="sessions">Sessions</string>
+    <string name="groups">Groups</string>
+    <string name="contacts">Contacts</string>
+    <string name="myself">Myself</string>
+</resources>
