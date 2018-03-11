@@ -51,6 +51,6 @@
             android:gravity="center"
             android:background="#888678"
             android:text="@string/myself"
-            android:onClick="refreshAccount"/>
+            android:onClick="refreshProfile"/>
     </LinearLayout>
 </RelativeLayout>

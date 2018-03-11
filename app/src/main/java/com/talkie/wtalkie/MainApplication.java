@@ -2,11 +2,14 @@ package com.talkie.wtalkie;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.util.Log;
 
+import com.talkie.wtalkie.services.MyService;
 
-public class MainApplication  extends Application  {
+
+public class MainApplication extends Application  {
     private static final String TAG = "MainApplication";
     @Override
     protected void attachBaseContext(Context base) {
@@ -42,7 +45,10 @@ public class MainApplication  extends Application  {
         super.onConfigurationChanged(newConfig);
     }
 
+/* ********************************************************************************************** */
+
     private void init(){
-        //startService(new Intent(getApplicationContext(), MyDaemonService.class));
+        Log.v(TAG, "init...");
+        startService(new Intent(getApplicationContext(), MyService.class));
     }
 }

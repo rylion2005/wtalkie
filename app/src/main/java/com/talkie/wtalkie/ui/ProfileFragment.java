@@ -9,20 +9,19 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.Contacts;
 
 
 public class ProfileFragment extends Fragment{
     private static final String TAG = "ProfileFragment";
 
-    TextView mTXVLocalAddress;
-    TextView mTXVInternetAddress;
+    private TextView mTXVAddress;
+    private TextView mTXVUuid;
 
     private OnFragmentInteractionListener mListener;
-
-    private String mLocalAddress;
-    private String mInternetAddress;
 
 
 /* ********************************************************************************************** */
@@ -30,10 +29,7 @@ public class ProfileFragment extends Fragment{
 
     public ProfileFragment() {
         // Required empty public constructor
-    }
 
-    public static ProfileFragment newInstance() {
-        return new ProfileFragment();
     }
 
     @Override
@@ -57,7 +53,8 @@ public class ProfileFragment extends Fragment{
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
         Log.v(TAG, "onCreateView");
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
@@ -89,37 +86,14 @@ public class ProfileFragment extends Fragment{
 
 /* ********************************************************************************************** */
 
-    public void updateLocalAddress(String address){
-        Log.v(TAG, "updateLocalAddress: " + address);
-        mLocalAddress = address;
-        //refreshAddressViews();
-    }
-
-    public void updateInternetAddress(String address){
-        Log.v(TAG, "updateInternetAddress: " + address);
-        mInternetAddress = address;
-        //refreshAddressViews();
-    }
-
-    public void refreshAddressViews(){
-        if (mTXVLocalAddress != null) {
-            mTXVLocalAddress.setText(mLocalAddress);
-        }
-
-        if (mTXVInternetAddress != null) {
-            mTXVInternetAddress.setText(mInternetAddress);
-        }
-    }
-
 /* ********************************************************************************************** */
 
 
     private void initViews(View rootView){
-        mTXVLocalAddress = rootView.findViewById(R.id.TXV_LocalAddress);
-        mTXVInternetAddress = rootView.findViewById(R.id.TXV_InternetAddress);
-
-        mTXVLocalAddress.setText(mLocalAddress);
-        mTXVInternetAddress.setText(mInternetAddress);
+        mTXVUuid = rootView.findViewById(R.id.TXV_Uuid);
+        mTXVAddress = rootView.findViewById(R.id.TXV_Address);
+        mTXVUuid.setText(Contacts.getInstance().getMyself().getUuid());
+        mTXVAddress.setText(Contacts.getInstance().getMyself().getAddress());
     }
 
 

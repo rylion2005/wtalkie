@@ -4,64 +4,71 @@
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="48dp">
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
-            android:text="Name:"/>
+            android:textSize="20sp"
+            android:text="UUID"/>
         <TextView
+            android:id="@+id/TXV_Uuid"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="center_vertical|end"
             android:textAllCaps="false"
-            android:text="Julien"/>
+            android:textColor="#9c9c9c"
+            android:textSize="18sp"
+            android:text="88888888"/>
 
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
 
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="48dp">
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
         <TextView
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
-            android:text="Local Address:"/>
+            android:textSize="20sp"
+            android:text="Address"/>
         <TextView
-            android:id="@+id/TXV_LocalAddress"
+            android:id="@+id/TXV_Address"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
-            android:gravity="center_vertical|end" />
+            android:gravity="center_vertical|end"
+            android:textColor="#9c9c9c"
+            android:textSize="18sp"
+            android:text="0.0.0.0"/>
 
     </LinearLayout>
 
-    <LinearLayout
-        android:orientation="horizontal"
+    <View
         android:layout_width="match_parent"
-        android:layout_height="48dp">
-        <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:gravity="start|center_vertical"
-            android:textAllCaps="false"
-            android:text="Internet Address:"/>
-        <TextView
-            android:id="@+id/TXV_InternetAddress"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|end" />
-
-    </LinearLayout>
+        android:layout_height="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
 </LinearLayout>
