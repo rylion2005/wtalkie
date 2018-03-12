@@ -4,33 +4,25 @@
     android:id="@+id/list_item_session"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="56dp"
-    android:minHeight="48dp"
-    android:gravity="center_vertical"
-    android:layout_centerVertical="true">
-    <LinearLayout
-        android:id="@+id/LNL_ContactLogoArea"
-        android:orientation="vertical"
-        android:layout_width="48dp"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:layout_alignParentStart="true">
-        <ImageView
-            android:id="@+id/IMV_ContactLogo"
-            android:layout_width="48dp"
-            android:layout_height="48dp" />
-    </LinearLayout>
+    android:layout_height="48dp"
+    android:minHeight="48dp">
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="wrap_content"
+    <ImageView
+        android:id="@+id/IMV_ContactLogo"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:src="@mipmap/default_avatar"/>
+
+    <TextView
+        android:id="@+id/TXV_IpAddress"
+        android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:layout_toEndOf="@+id/IMV_ContactLogo"
         android:layout_centerVertical="true"
-        android:gravity="center_vertical"
-        android:layout_toEndOf="@+id/LNL_ContactLogoArea">
-        <TextView
-            android:id="@+id/TXV_IpAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent" />
-    </LinearLayout>
+        android:paddingStart="4dp"
+        android:paddingEnd="4dp"
+        android:textSize="18sp"
+        android:text="0.0.0.0"/>
 </RelativeLayout>

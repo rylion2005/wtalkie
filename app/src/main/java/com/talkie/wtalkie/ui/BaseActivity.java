@@ -71,6 +71,7 @@ public class BaseActivity extends AppCompatActivity {
      */
     private void initPermissions() {
         final String[] PERMISSIONS = {
+                Manifest.permission.RECEIVE_BOOT_COMPLETED,
                 Manifest.permission.INTERNET,
                 Manifest.permission.RECORD_AUDIO,
                 Manifest.permission.ACCESS_NETWORK_STATE,

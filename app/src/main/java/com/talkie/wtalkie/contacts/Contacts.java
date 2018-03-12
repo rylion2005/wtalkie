@@ -1,11 +1,16 @@
 package com.talkie.wtalkie.contacts;
 
 import android.content.Context;
+import android.telephony.TelephonyManager;
 import android.util.Log;
 
+import com.talkie.wtalkie.sockets.Connector;
+
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -24,7 +29,7 @@ import java.util.UUID;
 **   yl7 | 18-3-11: Created
 **     
 */
-public class Contacts {
+public class Contacts implements Connector.Callback{
     private static final String TAG = "Contacts";
 
     private static final String MYSELF = "myself.db";
@@ -35,6 +40,8 @@ public class Contacts {
     private Context mContext;
 
     private final List<Callback> mCallbacks = new ArrayList<>();
+    private final List<User> mUserList = new ArrayList<>();
+
 
 /* ********************************************************************************************** */
 
@@ -42,6 +49,11 @@ public class Contacts {
     private Contacts(Context context){
         Log.v(TAG, "new Contacts");
         mContext = context;
+        initMyself();
+        List<User> users = read();
+        if (users != null) {
+            mUserList.addAll(users);
+        }
     }
 
     public static Contacts newInstance(Context context){
@@ -65,8 +77,24 @@ public class Contacts {
         return initMyself();
     }
 
+    public List<User> getContacts(){
+        return mUserList;
+    }
+
+    @Override
+    public void onUpdateUser(byte[] data, int length){
+        Log.v(TAG, "onUpdateUser: " + length);
+        User user = fromBytes(data, length);
+        update(user);
+        for (Callback cb : mCallbacks){
+            cb.onUpdateUsers();
+            cb.onUpdateMyself();
+        }
+    }
+
 
 /* ********************************************************************************************** */
+
     private User initMyself(){
         User user = null;
         try {
@@ -74,7 +102,9 @@ public class Contacts {
             if (fis.available() > 0){
                 byte[] bytes = new byte[MAX_BYTES_LENGTH];
                 int count = fis.read(bytes);
+                Log.v(TAG, "Myself: " + count);
                 user = fromBytes(bytes, count);
+                Log.v(TAG, "User: " + user.toString());
             }
             fis.close();
         } catch (IOException e) {
@@ -105,15 +135,26 @@ public class Contacts {
         if (bytes == null){
             return null;
         }
+        Log.v(TAG, "fromBytes: " + length);
+        User user = new User();
+        String buffer = new String(bytes);
+        String uuid = buffer.substring(0, buffer.indexOf(','));
+        String ip = buffer.substring(buffer.indexOf(',')+1, length);
+        user.setUuid(uuid);
+        user.setAddress(ip);
+        Log.v(TAG, "Uuid: " + uuid);
+        Log.v(TAG, "address: " + ip);
+        return user;
+    }
 
-        if (length == 0){
+    private User fromString(String data){
+        if (data == null){
             return null;
         }
 
         User user = new User();
-        String buffer = new String(bytes);
-        String uuid = buffer.substring(0, buffer.indexOf(','));
-        String ip = buffer.substring(buffer.indexOf(',')+1, length+1);
+        String uuid = data.substring(0, data.indexOf(','));
+        String ip = data.substring(data.indexOf(',') + 1, data.length());
         user.setUuid(uuid);
         user.setAddress(ip);
         return user;
@@ -153,10 +194,84 @@ public class Contacts {
         return hostIp;
     }
 
+    private void update(User user){
+        boolean existed = false;
+        if (user == null){
+            return;
+        }
+
+        for (User u : mUserList){
+            if (u.getUuid().equals(user.getUuid())){
+                existed = true;
+                if (u.getAddress() == null){
+                    mUserList.remove(u);
+                } else {
+                    u.setAddress(user.getAddress());
+                }
+                break;
+            }
+        }
+
+        if (!existed){
+            mUserList.add(user);
+        }
+
+        rebuild(mUserList);
+    }
+
+    private List<User> read(){
+        List<User> users = null;
+
+        try{
+            FileInputStream fis = mContext.openFileInput(CONTACTS_DATABASE);
+            InputStreamReader isr = new InputStreamReader(fis);
+            BufferedReader br = new BufferedReader(isr);
+            users = new ArrayList<>();
+            while (true){
+                String line = br.readLine();
+                if (line == null){
+                    break;
+                }
+                Log.v(TAG, "read: " + line);
+                users.add(fromString(line.trim()));
+            }
+            fis.close();
+        } catch (IOException e) {
+            Log.e(TAG, "read: exception");
+            //e.printStackTrace();
+        }
+
+        return users;
+    }
+
+    private void rebuild(List<User> users){
+        if ((users == null) || users.isEmpty()){
+            mContext.deleteFile(CONTACTS_DATABASE);
+            return;
+        }
+
+        try {
+            FileOutputStream fos = mContext.openFileOutput(CONTACTS_DATABASE, Context.MODE_APPEND);
+            for (User u : users){
+                Log.v(TAG, "write: " + u.toString());
+                fos.write(u.toString().getBytes());
+            }
+            fos.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
 /* ********************************************************************************************** */
 
-    interface Callback {
-        void onMyselfChanged();
-        void onContactsUpdated();
+        
+
+
+/* ********************************************************************************************** */
+
+    public interface Callback {
+        void onUpdateMyself();
+        void onUpdateUsers();
     }
 }

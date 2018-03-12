@@ -15,6 +15,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.Contacts;
+import com.talkie.wtalkie.contacts.User;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,21 +24,17 @@ import java.util.List;
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
 
-    private static final int MESSAGE_CONTACT_UPDATE = 0xC1;
-
-    //private final MyHandler mHandler = new MyHandler();
-
+    private static final int MESSAGE_UPDATE_MYSELF = 0xC1;
+    private static final int MESSAGE_UPDATE_USER = 0xC2;
+    private final MyHandler mHandler = new MyHandler();
     private MyBaseAdapter mAdapter;
-    //private Contacts mContacts;
+    private Contacts mContacts;
 
 
 /* ********************************************************************************************** */
 
 
-    public ContactsFragment() {
-        // Required empty public constructor
-        init();
-    }
+    public ContactsFragment() { }
 
     @Override
     public void onAttach(Context context) {
@@ -48,6 +46,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v(TAG, "onCreate");
+        init();
     }
 
     @Override
@@ -98,21 +97,16 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         if ((mAdapter == null)){
             return;
         }
-/*
-        if (mContacts == null){
-            return;
-        }
 
         synchronized (mAdapter.getLock()) {
             mAdapter.clearItemList();
         }
-
+        Log.v(TAG, "Contacts: " + mContacts.getContacts().size());
         for (User user : mContacts.getContacts()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
-            vh.setImageView(R.id.IMV_ContactLogo, R.mipmap.ic_contact);
-            vh.setTextView(R.id.TXV_IpAddress, user.getLocalip());
+            vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
         }
-*/
+
         mAdapter.notifyDataSetChanged();
     }
 
@@ -130,29 +124,42 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
 
-        //refreshListView();
+        refreshContactViews();
     }
 
     private void init(){
-        //mContacts = new Contacts(this.getActivity().getApplicationContext());
-        //mContacts.register(new ContactsUpdateCallback());
+        mContacts = Contacts.getInstance();
+        mContacts.register(new ContactsCallback());
     }
+
 
 /* ********************************************************************************************** */
-/*
 
-    class ContactsUpdateCallback implements Contacts.Callback{
+
+    class ContactsCallback implements Contacts.Callback{
         @Override
-        public void onContactsUpdate() {
-            mHandler.sendEmptyMessage(MESSAGE_CONTACT_UPDATE);
+        public void onUpdateMyself() {
+            mHandler.sendEmptyMessage(MESSAGE_UPDATE_MYSELF);
+        }
+
+        @Override
+        public void onUpdateUsers() {
+            mHandler.sendEmptyMessage(MESSAGE_UPDATE_USER);
         }
     }
+
+
+/* ********************************************************************************************** */
+
 
     class MyHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what){
-                case MESSAGE_CONTACT_UPDATE:
+                case MESSAGE_UPDATE_MYSELF:
+                    break;
+
+                case MESSAGE_UPDATE_USER:
                     refreshContactViews();
                     break;
                 default:
@@ -160,5 +167,5 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             }
         }
     }
-*/
+
 }
