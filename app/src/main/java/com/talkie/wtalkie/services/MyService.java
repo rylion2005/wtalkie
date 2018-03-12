@@ -13,6 +13,8 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
 
+import com.talkie.wtalkie.audio.Recorder;
+import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.sockets.Connector;
 
@@ -22,6 +24,9 @@ public class MyService extends Service {
 
     private Contacts mContacts;
     private Connector mConnector;
+
+    private final Recorder mRecorder = Recorder.newInstance();
+    private final Tracker mTracker = Tracker.newInstance();
 
 /* ********************************************************************************************** */
 
@@ -73,13 +78,26 @@ public class MyService extends Service {
 
 
 /* ********************************************************************************************** */
+    public void registerAudioRecord(Recorder.Callback cb){
+        mRecorder.register(cb);
+    }
 
+    public void playRecord(boolean start){
+        if (start) {
+            mRecorder.start();
+        } else {
+            mRecorder.stop();
+        }
+    }
+
+/* ********************************************************************************************** */
 
     private void init(){
         Log.v(TAG, "init()");
         mContacts = Contacts.newInstance(getApplicationContext());
         mConnector = new Connector();
         mConnector.register(mContacts);
+
         registerActions();
     }
 
