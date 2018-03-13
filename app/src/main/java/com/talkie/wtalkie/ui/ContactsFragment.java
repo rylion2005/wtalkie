@@ -1,5 +1,6 @@
 package com.talkie.wtalkie.ui;
 
+import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
@@ -9,6 +10,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -24,8 +28,16 @@ import java.util.List;
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
 
+    // options menu states
+    private static final int OPTIONS_MENU_STATE_IDLE = 0;
+    private static final int OPTIONS_MENU_STATE_SELECTED = 1;
+    private static final int OPTIONS_MENU_STATE_MAX = 2;
+
     private static final int MESSAGE_UPDATE_MYSELF = 0xC1;
     private static final int MESSAGE_UPDATE_USER = 0xC2;
+
+    private int mOptionsMenuState = OPTIONS_MENU_STATE_IDLE;
+
     private final MyHandler mHandler = new MyHandler();
     private MyBaseAdapter mAdapter;
     private Contacts mContacts;
@@ -47,6 +59,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         super.onCreate(savedInstanceState);
         Log.v(TAG, "onCreate");
         init();
+        setHasOptionsMenu(true);
     }
 
     @Override
@@ -86,11 +99,25 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v(TAG, "onItemClick: " + position);
-        //startActivity(new Intent(this.getActivity(), ChatActivity.class));
+        startActivity(new Intent(this.getActivity(), ChatActivity.class));
     }
 
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.actionbar_contacts, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
-/* ********************************************************************************************** */
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.SelectMore) {
+            mOptionsMenuState = (mOptionsMenuState + 1) % OPTIONS_MENU_STATE_MAX;
+            handleOptionsMenu(mOptionsMenuState);
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
+    /* ********************************************************************************************** */
 
     public void refreshContactViews(){
         Log.v(TAG, "refreshContactViews");
@@ -114,6 +141,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 /* ********************************************************************************************** */
 
     private void initViews(View rootView){
+        ActionBar ab = getActivity().getActionBar();
         initListViews(rootView);
     }
 
@@ -132,6 +160,21 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         mContacts.register(new ContactsCallback());
     }
 
+    private void handleOptionsMenu(int newState){
+        Log.v(TAG, "Options Menu state: " + newState);
+        switch (newState){
+            case OPTIONS_MENU_STATE_IDLE:
+                // reset to idle
+                //refreshContacts(false);
+                break;
+            case OPTIONS_MENU_STATE_SELECTED:
+                // show ui for user to select contacts
+                //refreshContacts(true);
+                break;
+            default:
+                break;
+        }
+    }
 
 /* ********************************************************************************************** */
 

@@ -3,4 +3,109 @@
     <color name="colorPrimary">#3F51B5</color>
     <color name="colorPrimaryDark">#303F9F</color>
     <color name="colorAccent">#FF4081</color>
+
+    <color name="top_bar_normal_bg">#f7f7f7</color>
+    <color name="top_bar_right_text">#38adff</color>
+    <color name="top_bar_title_text">#39adff</color>
+    <color name="common_top_bar_blue">#4ebcd3</color>
+    <color name="btn_normal">#00acff</color>
+    <color name="btn_pressed">#46678d</color>
+    <color name="btn_focus">#1e90ff</color>
+    <color name="btn_logout_normal">#d33f3f</color>
+    <color name="btn_logout_pressed">#DA5A4D</color>
+    <color name="btn_register_normal">#ffffff</color>
+    <color name="btn_register_pressed">#00acff</color>
+    <color name="common_bottom_bar_normal_bg">#2d2f31</color>
+    <color name="common_bottom_bar_selected_bg">#161718</color>
+    <color name="common_botton_bar_blue">#2ea7e0</color>
+
+    <color name="switch_close_bg">#fd6768</color>
+    <color name="switch_open_bg">#16c248</color>
+    <color name="btn_pressed_green_solid">#B6DA53</color>
+    <color name="divider_list">#d9d9d9</color>
+    <color name="divider_bg">#d2d2d2</color>
+
+    <color name="error_item_color">#F6EBE6</color>
+    <color name="bottom_bar_normal_bg">#F7F7F7</color>
+    <color name="bottom_bar_text_normal">#7d8790</color>
+    <color name="bottom_bar_text_sel">#38adff</color>
+    <color name="bottom_text_color_normal">#ffffff</color>
+    <color name="btn_white_normal">#f7f8f8</color>
+    <color name="btn_white_pressed">#b5b5b6</color>
+    <color name="btn_green_noraml">#68C270</color>
+    <color name="btn_green_pressed">#6FCD78</color>
+    <color name="btn_gray_normal">#c0c0c0</color>
+    <color name="btn_gray_pressed_status">#b5b5b6</color>
+    <color name="btn_gray_pressed">#666667</color>
+    <color name="btn_blue_normal">#1e90ff</color>
+    <color name="btn_blue_pressed">#0066FF</color>
+    <color name="orange">#FFA500</color>
+    <color name="gray_pressed">#b5b5b6</color>
+    <color name="gray_normal">#666667</color>
+    <color name="grid_state_pressed">#1Affffff</color>
+    <color name="grid_state_focused">#80000000</color>
+    <color name="voip_interface_text_color">#bababa</color>
+
+    <color name="btn_answer_pressed">#4ebcd3</color>
+    <color name="btn_answer_normal">#2dafa3</color>
+    <color name="button_orange_disable">#ffe0e0e0</color>
+    <color name="button_orange_nor">#ffff8c03</color>
+    <color name="button_orange_press">#ffef7703</color>
+    <color name="dark_gray">#ff333333</color>
+    <color name="gray">#ff666666</color>
+    <color name="bts_common_line_color">#ffe5e5e5</color>
+
+
+    <color name="contents_text">#ff000000</color>
+    <color name="encode_view">#ffffffff</color>
+    <color name="possible_result_points">#c0ffbd21</color> <!-- Android standard ICS color -->
+    <color name="result_minor_text">#ffc0c0c0</color>
+    <color name="result_points">#c099cc00</color> <!-- Android standard ICS color -->
+    <color name="result_text">#ffffffff</color>
+    <color name="result_view">#b0000000</color>
+    <color name="status_text">#ffffffff</color>
+    <color name="transparent">#00000000</color>
+    <color name="viewfinder_laser">#ffcc0000</color> <!-- Android standard ICS color -->
+    <color name="viewfinder_mask">#60000000</color>
+
+    <color name="border">#999999</color>
+
+    <color name="list_secondary_color">#888888</color>
+    <color name="list_primary_color">#222222</color>
+    <color name="list_date_color">#B9B9B9</color>
+
+
+    <color name="im_social_dig_name_bg">#DDDDDD</color>
+    <color name="im_font_color_text_hint">#abb1b6</color>
+    <color name="im_line_color">#dadada</color>
+    <color name="name_selector_color">#cccccc</color>
+    <color name="bg_no_photo">#EEEEEE</color>
+    <color name="title_bg">#373B3E</color>
+    <color name="video_bg">#ededed</color>
+
+
+    <color name="white">#ffffffff</color>
+    <color name="black">#333333</color>
+    <color name="call_enable">#e7e9ec</color>
+    <color name="call_disable">#576378</color>
+    <color name="list_state_focused">#b3e0ff</color>
+
+    <color name="devider">#d9d9d9</color>
+    <color name="userinfo_bg">#dadada</color>
+
+    <color name="chat_common_bg">#FFFFFF</color>
+    <color name="common_bg">#ffffff</color>
+
+    <color name="avatar_color1">#4da9ea</color>
+    <color name="avatar_color2">#ff7f58</color>
+    <color name="avatar_color3">#1ad7a6</color>
+    <color name="avatar_color4">#9e80e4</color>
+
+    <color name="normal_btn_bg">#38acff</color>
+    <color name="selected_btn_bg">#319fea</color>
+
+    <color name="contact_dept_gray">#999</color>
+    <color name="contact_dept_blue">#38adff</color>
+    <color name="common_empty_bg">#f4f4f4</color>
+    <color name="userinfo_title_gray">#888888</color>
 </resources>
