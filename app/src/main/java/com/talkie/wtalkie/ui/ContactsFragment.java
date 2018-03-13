@@ -16,6 +16,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
@@ -28,15 +29,17 @@ import java.util.List;
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
 
-    // options menu states
-    private static final int OPTIONS_MENU_STATE_IDLE = 0;
-    private static final int OPTIONS_MENU_STATE_SELECTED = 1;
-    private static final int OPTIONS_MENU_STATE_MAX = 2;
+    private static final int SELECT_STATE_IDLE = 0;
+    private static final int SELECT_STATE_GROUP_TALK = 1;
+    private static final int SELECT_STATE_MAX = 2;
 
+
+    // handler messages
     private static final int MESSAGE_UPDATE_MYSELF = 0xC1;
     private static final int MESSAGE_UPDATE_USER = 0xC2;
 
-    private int mOptionsMenuState = OPTIONS_MENU_STATE_IDLE;
+    private int mState = SELECT_STATE_IDLE;
+    private boolean mChecked = false;
 
     private final MyHandler mHandler = new MyHandler();
     private MyBaseAdapter mAdapter;
@@ -75,7 +78,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     public void onResume() {
         super.onResume();
         Log.v(TAG, "onResume");
-        refreshContactViews();
+        refreshContacts(false);
     }
 
     @Override
@@ -99,7 +102,14 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v(TAG, "onItemClick: " + position);
-        startActivity(new Intent(this.getActivity(), ChatActivity.class));
+        // state machine
+        if (mState == SELECT_STATE_IDLE){
+            startActivity(new Intent(this.getActivity(), ChatActivity.class));
+        } else { //mState == SELECT_STATE_GROUP_TALK
+            CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);
+            mChecked = !mChecked;
+            cb.setChecked(mChecked);
+        }
     }
 
     @Override
@@ -110,17 +120,25 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+        // switch select state between SELECT_STATE_IDLE and SELECT_STATE_GROUP_TALK
         if (item.getItemId() == R.id.SelectMore) {
-            mOptionsMenuState = (mOptionsMenuState + 1) % OPTIONS_MENU_STATE_MAX;
-            handleOptionsMenu(mOptionsMenuState);
+            if (mState == SELECT_STATE_IDLE){
+                mState = SELECT_STATE_GROUP_TALK;
+                item.setTitle("Originate Talk");
+                refreshContacts(true);
+            } else {
+                mState = SELECT_STATE_IDLE;
+                item.setTitle("Select More");
+                refreshContacts(false);
+            }
         }
         return super.onOptionsItemSelected(item);
     }
 
     /* ********************************************************************************************** */
 
-    public void refreshContactViews(){
-        Log.v(TAG, "refreshContactViews");
+    public void refreshContacts(boolean showCheckbox){
+        Log.v(TAG, "refreshContacts");
         if ((mAdapter == null)){
             return;
         }
@@ -128,10 +146,16 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         synchronized (mAdapter.getLock()) {
             mAdapter.clearItemList();
         }
+
         Log.v(TAG, "Contacts: " + mContacts.getContacts().size());
         for (User user : mContacts.getContacts()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
+            if (showCheckbox){
+                vh.setView(R.id.CHB_SelectContacts, View.VISIBLE);
+            } else {
+                vh.setView(R.id.CHB_SelectContacts, View.GONE);
+            }
         }
 
         mAdapter.notifyDataSetChanged();
@@ -142,17 +166,12 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     private void initViews(View rootView){
         ActionBar ab = getActivity().getActionBar();
-        initListViews(rootView);
-    }
 
-    private void initListViews(View rootView){
         mAdapter = MyBaseAdapter.newInstance(this.getActivity(), R.layout.contact_list);
-
         ListView lsv = rootView.findViewById(R.id.LSV_Contacts);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
-
-        refreshContactViews();
+        refreshContacts(false);
     }
 
     private void init(){
@@ -160,21 +179,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         mContacts.register(new ContactsCallback());
     }
 
-    private void handleOptionsMenu(int newState){
-        Log.v(TAG, "Options Menu state: " + newState);
-        switch (newState){
-            case OPTIONS_MENU_STATE_IDLE:
-                // reset to idle
-                //refreshContacts(false);
-                break;
-            case OPTIONS_MENU_STATE_SELECTED:
-                // show ui for user to select contacts
-                //refreshContacts(true);
-                break;
-            default:
-                break;
-        }
-    }
 
 /* ********************************************************************************************** */
 
@@ -203,7 +207,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
                     break;
 
                 case MESSAGE_UPDATE_USER:
-                    refreshContactViews();
+                    refreshContacts(false);
                     break;
                 default:
                     break;

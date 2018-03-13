@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/list_item_session"
     android:orientation="horizontal"
     android:layout_width="match_parent"
     android:layout_height="48dp"
@@ -12,17 +11,27 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:paddingStart="8dp"
-        android:paddingEnd="8dp"
+        android:paddingEnd="4dp"
         android:src="@mipmap/default_avatar"/>
 
     <TextView
         android:id="@+id/TXV_IpAddress"
-        android:layout_width="match_parent"
+        android:layout_width="0dp"
+        android:layout_weight="1"
         android:layout_height="match_parent"
-        android:layout_toEndOf="@+id/IMV_ContactLogo"
-        android:layout_centerVertical="true"
+        android:gravity="center_vertical"
         android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:textSize="18sp"
         android:text="0.0.0.0"/>
-</RelativeLayout>
+
+    <CheckBox
+        android:id="@+id/CHB_SelectContacts"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        android:visibility="gone"
+        android:focusable="false"
+        android:clickable="false"/>
+</LinearLayout>
