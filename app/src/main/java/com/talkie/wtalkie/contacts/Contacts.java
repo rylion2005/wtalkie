@@ -38,6 +38,7 @@ public class Contacts implements Connector.Callback{
     private static Contacts mInstance;
 
     private Context mContext;
+    private Identity mIdentity;
 
     private final List<Callback> mCallbacks = new ArrayList<>();
     private final List<User> mUserList = new ArrayList<>();
@@ -49,6 +50,7 @@ public class Contacts implements Connector.Callback{
     private Contacts(Context context){
         Log.v(TAG, "new Contacts");
         mContext = context;
+        mIdentity = new Identity(context);
         initMyself();
         List<User> users = read();
         if (users != null) {
@@ -114,8 +116,9 @@ public class Contacts implements Connector.Callback{
 
         if (user == null) {
             user = new User();
-            user.setUuid(genUuid());
-            user.setAddress(getLocalAddress());
+            user.setUuid(mIdentity.genShortUuid());
+            user.setSerial(mIdentity.getSerial());
+            user.setAddress(mIdentity.getLocalAddress());
 
             try{
                 mContext.deleteFile(MYSELF);
@@ -138,60 +141,18 @@ public class Contacts implements Connector.Callback{
         Log.v(TAG, "fromBytes: " + length);
         User user = new User();
         String buffer = new String(bytes);
-        String uuid = buffer.substring(0, buffer.indexOf(','));
-        String ip = buffer.substring(buffer.indexOf(',')+1, length);
+        int pos1 = buffer.indexOf(',');
+        int pos2 = buffer.lastIndexOf(',');
+        String uuid = buffer.substring(0, pos1);
+        String serial = buffer.substring(pos1+1, pos2);
+        String ip = buffer.substring(pos2+1, length);
         user.setUuid(uuid);
+        user.setSerial(serial);
         user.setAddress(ip);
         Log.v(TAG, "Uuid: " + uuid);
+        Log.v(TAG, "serial: " + serial);
         Log.v(TAG, "address: " + ip);
         return user;
-    }
-
-    private User fromString(String data){
-        if (data == null){
-            return null;
-        }
-
-        User user = new User();
-        String uuid = data.substring(0, data.indexOf(','));
-        String ip = data.substring(data.indexOf(',') + 1, data.length());
-        user.setUuid(uuid);
-        user.setAddress(ip);
-        return user;
-    }
-
-    private String genUuid(){
-        String id = UUID.randomUUID().toString();
-        Log.v(TAG, "uuid: " + id);
-        return id;
-    }
-
-    private String getLocalAddress() {
-
-        String hostIp = null;
-        try {
-            Enumeration nis = NetworkInterface.getNetworkInterfaces();
-            InetAddress ia = null;
-            while (nis.hasMoreElements()) {
-                NetworkInterface ni = (NetworkInterface) nis.nextElement();
-                Enumeration<InetAddress> ias = ni.getInetAddresses();
-                while (ias.hasMoreElements()) {
-                    ia = ias.nextElement();
-                    if (ia instanceof Inet6Address) {
-                        continue;// skip ipv6
-                    }
-                    String ip = ia.getHostAddress();
-                    if (!"127.0.0.1".equals(ip)) {
-                        hostIp = ia.getHostAddress();
-                        break;
-                    }
-                }
-            }
-        } catch (SocketException e) {
-            //TODO
-            //e.printStackTrace();
-        }
-        return hostIp;
     }
 
     private void update(User user){
@@ -233,7 +194,7 @@ public class Contacts implements Connector.Callback{
                     break;
                 }
                 Log.v(TAG, "read: " + line);
-                users.add(fromString(line.trim()));
+                users.add(fromBytes(line.trim().getBytes(), line.trim().length()));
             }
             fis.close();
         } catch (IOException e) {

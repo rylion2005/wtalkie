@@ -81,7 +81,8 @@ public class BaseActivity extends AppCompatActivity {
                 Manifest.permission.WRITE_SETTINGS,
                 Manifest.permission.READ_PHONE_STATE,
                 Manifest.permission.ACCESS_WIFI_STATE,
-                Manifest.permission.CHANGE_WIFI_STATE
+                Manifest.permission.CHANGE_WIFI_STATE,
+                Manifest.permission.BLUETOOTH
         };
 
         Log.i(TAG, "Init permissions");

@@ -11,6 +11,7 @@ package com.talkie.wtalkie.contacts;
 */
 public class User {
     String uuid;
+    String serial;
     String address;
 
     public String getUuid() {
@@ -19,6 +20,14 @@ public class User {
 
     public void setUuid(String uuid) {
         this.uuid = uuid;
+    }
+
+    public String getSerial() {
+        return serial;
+    }
+
+    public void setSerial(String serial) {
+        this.serial = serial;
     }
 
     public String getAddress() {
@@ -30,6 +39,6 @@ public class User {
     }
 
     public String toString(){
-        return uuid + "," + address;
+        return uuid + "," + serial + "," + address;
     }
 }

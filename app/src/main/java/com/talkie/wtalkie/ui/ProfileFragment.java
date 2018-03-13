@@ -18,8 +18,10 @@ import com.talkie.wtalkie.contacts.Contacts;
 public class ProfileFragment extends Fragment{
     private static final String TAG = "ProfileFragment";
 
-    private TextView mTXVAddress;
     private TextView mTXVUuid;
+    private TextView mTXVSerial;
+    private TextView mTXVAddress;
+
 
     private OnFragmentInteractionListener mListener;
 
@@ -91,8 +93,10 @@ public class ProfileFragment extends Fragment{
 
     private void initViews(View rootView){
         mTXVUuid = rootView.findViewById(R.id.TXV_Uuid);
+        mTXVSerial = rootView.findViewById(R.id.TXV_Serial);
         mTXVAddress = rootView.findViewById(R.id.TXV_Address);
         mTXVUuid.setText(Contacts.getInstance().getMyself().getUuid());
+        mTXVSerial.setText(Contacts.getInstance().getMyself().getSerial());
         mTXVAddress.setText(Contacts.getInstance().getMyself().getAddress());
     }
 

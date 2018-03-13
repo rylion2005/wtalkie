@@ -12,8 +12,7 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
         <TextView
-            android:layout_width="0dp"
-            android:layout_weight="1"
+            android:layout_width="80dp"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
@@ -46,13 +45,46 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
         <TextView
+            android:layout_width="80dp"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="SerialNo"/>
+        <TextView
+            android:id="@+id/TXV_Serial"
             android:layout_width="0dp"
             android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:textSize="16sp"
+            android:text="xxxxxxxxxx"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="80dp"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
             android:textSize="18sp"
             android:text="Address"/>
+
         <TextView
             android:id="@+id/TXV_Address"
             android:layout_width="0dp"

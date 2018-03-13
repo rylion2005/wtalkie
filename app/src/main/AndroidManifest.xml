@@ -19,6 +19,11 @@
     <!-- Phone -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
 
+    <!-- To auto-complete the email text field in the login form with the user's emails -->
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="android.permission.READ_PROFILE" />
+    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
     <application
         android:name=".MainApplication"
         android:allowBackup="true"
@@ -40,7 +45,10 @@
             android:enabled="true"
             android:exported="true" />
 
-        <activity android:name=".ui.ChatActivity"></activity>
+        <activity android:name=".ui.ChatActivity" />
+        <activity
+            android:name=".LoginActivity"
+            android:label="@string/title_activity_login"></activity>
     </application>
 
 </manifest>
