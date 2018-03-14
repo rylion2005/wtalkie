@@ -6,16 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.res.Configuration;
-import android.graphics.ColorSpace;
 import android.net.ConnectivityManager;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-
-import com.talkie.wtalkie.audio.Recorder;
-import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Contacts;
+import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.sockets.Connector;
 
 import java.util.ArrayList;
@@ -28,7 +25,7 @@ public class MyService extends Service {
     private Contacts mContacts;
     private Connector mConnector;
 
-    private List<ConnectivityCallback> mCallbacks = new ArrayList<>();
+    private final List<ConnectivityCallback> mCallbacks = new ArrayList<>();
 
 /* ********************************************************************************************** */
 
@@ -82,25 +79,24 @@ public class MyService extends Service {
 
 /* ********************************************************************************************** */
 
-    public void registerConnectivity(ConnectivityCallback cb){
-        if (cb != null) {
-            mCallbacks.add(cb);
+    public void register(ConnectivityCallback conn, Contacts.UserChangeCallback cont){
+        if (conn != null) {
+            mCallbacks.add(conn);
+        }
+
+        if (cont != null){
+            mContacts.register(cont);
         }
     }
 
-    public void registerContacts(Contacts.Callback cb){
-        if (cb != null){
-            mContacts.register(cb);
-        }
-    }
 
 /* ********************************************************************************************** */
 
     private void init(){
         Log.v(TAG, "init()");
-        mContacts = Contacts.newInstance(getApplicationContext());
+        mContacts = Contacts.getInstance();
         mConnector = new Connector();
-        mConnector.register(mContacts);
+        mConnector.register(new ConnectorCallback());
 
         registerActions();
     }
@@ -136,7 +132,6 @@ public class MyService extends Service {
             Log.v(TAG, "onReceive: " + intent);
             boolean connectivity = false;
 
-            mContacts.onUpdateMyself(); // always update
             if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)){
 
                 int networkType = intent.getIntExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, -1);
@@ -156,9 +151,19 @@ public class MyService extends Service {
             }
 
             //if (connectivity){
-                mConnector.broadcast(mContacts.getMyself().toString().getBytes(),
-                        mContacts.getMyself().toString().length());
+                User u = User.fromSharePreference(getApplicationContext());
+                mConnector.broadcast(u.toString().getBytes(),u.toString().length());
             //}
+        }
+    }
+
+/* ********************************************************************************************** */
+
+    public class ConnectorCallback implements Connector.Callback {
+        @Override
+        public void onUpdateUser(byte[] data, int length) {
+            User u = User.fromBytes(data, length);
+            mContacts.updateDatabase(getApplicationContext(), u);
         }
     }
 

@@ -14,6 +14,7 @@ import android.widget.TextView;
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.contacts.Identity;
+import com.talkie.wtalkie.contacts.User;
 
 
 public class ProfileFragment extends Fragment{
@@ -84,8 +85,10 @@ public class ProfileFragment extends Fragment{
         TextView TXVUuid = mView.findViewById(R.id.TXV_Uuid);
         TextView TXVSerial = mView.findViewById(R.id.TXV_Serial);
         TextView TXVAddress = mView.findViewById(R.id.TXV_Address);
-        TXVUuid.setText(Identity.getInstance(mContext).genShortUuid());
-        TXVSerial.setText(Identity.getInstance(mContext).getSerial());
-        TXVAddress.setText(Identity.getInstance(mContext).getLocalAddress());
+
+        User me = User.fromSharePreference(getActivity().getApplicationContext());
+        TXVUuid.setText(me.getUuid());
+        TXVSerial.setText(me.getSerial());
+        TXVAddress.setText(me.getAddress());
     }
 }

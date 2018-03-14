@@ -148,7 +148,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         }
 
         Contacts c = Contacts.getInstance();
-        for (User user : c.getContacts()) {
+        for (User user : c.fromDatabase(getActivity().getApplicationContext())) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
             if (showCheckbox) {
@@ -172,7 +172,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void init(){
-        mContacts = Contacts.getInstance();
+        //mContacts = Contacts.getInstance();
     }
 
 /* ********************************************************************************************** */

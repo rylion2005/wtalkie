@@ -103,9 +103,8 @@ public class MainActivity extends BaseActivity {
         public void onServiceConnected(ComponentName name, IBinder service) {
             Log.v(TAG, "onServiceConnected: " + name);
             mService = ((MyService.MyBinder) service).getService();
-            UiCallback cb = new UiCallback();
-            mService.registerConnectivity(cb);
-            mService.registerContacts(cb);
+            EventCallback cb = new EventCallback();
+            mService.register(cb, cb);
         }
 
         @Override
@@ -136,12 +135,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    class UiCallback implements Contacts.Callback, MyService.ConnectivityCallback{
-
-        @Override
-        public void onUpdateMyself() {
-            mHandler.sendEmptyMessage(MESSAGE_UPDATE_MYSELF);
-        }
+    class EventCallback implements Contacts.UserChangeCallback, MyService.ConnectivityCallback{
 
         @Override
         public void onUpdateUsers() {

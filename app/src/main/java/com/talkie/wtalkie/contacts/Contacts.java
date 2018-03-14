@@ -7,11 +7,16 @@ import android.util.Log;
 
 import com.talkie.wtalkie.sockets.Connector;
 
+import java.io.BufferedOutputStream;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
@@ -30,144 +35,104 @@ import java.util.UUID;
 **   yl7 | 18-3-11: Created
 **     
 */
-public class Contacts implements Connector.Callback{
+public class Contacts {
     private static final String TAG = "Contacts";
 
-    private static final String MYSELF = "myself";
     private static final String CONTACTS_DATABASE = "contacts.csv";
 
     private static Contacts mInstance;
 
-    private Context mContext;
-    private Identity mIdentity;
-
-    private final List<Callback> mCallbacks = new ArrayList<>();
+    private final List<UserChangeCallback> mCallbacks = new ArrayList<>();
 
 
 /* ********************************************************************************************** */
 
 
-    private Contacts(Context context){
+    private Contacts(){
         Log.v(TAG, "new Contacts");
-        mContext = context;
-        mIdentity = Identity.getInstance(context);
-        fromSharePreference();
     }
 
-    public static Contacts newInstance(Context context){
+    public static Contacts getInstance(){
         if (mInstance == null){
-            mInstance = new Contacts(context);
+            mInstance = new Contacts();
         }
         return mInstance;
     }
 
-    public static Contacts getInstance(){
-        Log.v(TAG, "get instance");
-        return mInstance;
-    }
-
-    public void register(Callback cb){
+    public void register(UserChangeCallback cb){
         if (cb != null){
             mCallbacks.add(cb);
         }
     }
 
-    public User getMyself(){
-        return fromSharePreference();
-    }
-
-    public List<User> getContacts(){
-        return read();
-    }
-
-    // notify myself's status changed
-    public void onUpdateMyself(){
-        for (Callback cb : mCallbacks){
-            cb.onUpdateMyself();
-        }
-    }
-
-    // notify user information update
-    @Override
-    public void onUpdateUser(byte[] data, int length){
-        Log.v(TAG, "onUpdateUser: " + length);
-        User user = User.fromBytes(data, length);
-        Log.v(TAG, "Incoming User: " + user.toString());
-        update(user);
-        for (Callback cb : mCallbacks){
-            cb.onUpdateUsers();
-        }
-    }
-
-
-/* ********************************************************************************************** */
-
-    private User fromSharePreference(){
-        Log.v(TAG, "rebuild myself");
-        User user = new User();
-        SharedPreferences sp = mContext.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sp.edit();
-        String uuid = sp.getString("uuid", null);
-        if (null == uuid){ // generate an uuid
-            uuid = mIdentity.genShortUuid();
-            user.setUuid(uuid);
-            editor.putString("uuid", uuid);
-        }
-        editor.putString("serial", mIdentity.getSerial());
-        editor.putString("address", mIdentity.getLocalAddress());
-        editor.apply();
-
-        user.setUuid(sp.getString("uuid", null));
-        user.setSerial(mIdentity.getSerial());
-        user.setAddress(mIdentity.getLocalAddress());
-        return user;
-    }
-
-    private void update(User user){
+    public void updateDatabase(Context c, User user){
+        Log.d(TAG, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        boolean updated = false;
 
         if (user == null){
             return;
         }
 
+        // no valid identities
         if ((user.getUuid() == null) && (user.getSerial() == null)){
             Log.v(TAG, "no valid Ids");
             return;
         }
 
-        List<User> users = read();
-        if (users.isEmpty()){
-            users.add(user);
-        } else {
-            for (User u : users){
-                // check serial firstly
-                if ((u.getSerial() != null)
-                        && (user.getSerial() != null)
-                        && u.getSerial().equals(user.getSerial())){
-                    u.setUuid(user.getUuid());
+        Log.d(TAG, "Incoming/User: " + user.toString());
+        // read from database
+        List<User> users = fromDatabase(c);
+        Log.d(TAG, "Database size: " + users.size());
+        // check if there is a same user
+        for (User u : users){
+            Log.d(TAG, "Database/User: " + u.toString());
+
+            // find a equaled user
+            if (u.equals(user)){
+                Log.d(TAG, "Totally same user !!!!!!");
+                return;
+            }
+
+            // check serial firstly
+            if (u.sameSerial(user)){
+                Log.d(TAG, "same serial");
+                u.setUuid(user.getUuid());
+                u.setAddress(user.getAddress());
+                updated = true;
+                break;
+            } else { // check UUID
+                if (u.sameUuid(user)) {
+                    Log.d(TAG, "same uuid");
+                    u.setSerial(user.getSerial());
                     u.setAddress(user.getAddress());
+                    updated = true;
                     break;
-                } else { // check UUID
-                    if ((u.getUuid() != null)
-                            && (user.getUuid() != null)
-                            && u.getUuid().equals(user.getUuid())) {
-                        u.setSerial(user.getSerial());
-                        u.setAddress(user.getAddress());
-                        break;
-                    } else {
-                        users.add(user);
-                    }
                 }
             }
         }
-        Log.v(TAG, "User List: " + users.size());
-        rebuild(users);
+
+        // append to list
+        if (!updated){
+            users.add(user);
+        }
+
+        // write into database
+        rebuild(c, users);
+        users.clear();
+
+        // notify clients
+        for (UserChangeCallback cb : mCallbacks){
+            cb.onUpdateUsers();
+        }
+
+        Log.d(TAG, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
-    private List<User> read(){
+    public List<User> fromDatabase(Context c){
         List<User> users = new ArrayList<>();
-
+        Log.d(TAG, "fromDatabase");
         try{
-            FileInputStream fis = mContext.openFileInput(CONTACTS_DATABASE);
+            FileInputStream fis = c.openFileInput(CONTACTS_DATABASE);
             InputStreamReader isr = new InputStreamReader(fis);
             BufferedReader br = new BufferedReader(isr);
             while (true){
@@ -180,25 +145,33 @@ public class Contacts implements Connector.Callback{
             }
             fis.close();
         } catch (IOException e) {
-            Log.e(TAG, "Contacts no database");
+            Log.e(TAG, "no database");
             //e.printStackTrace();
         }
 
         return users;
     }
 
-    private void rebuild(List<User> users){
-        if ((users == null) || users.isEmpty()){
-            mContext.deleteFile(CONTACTS_DATABASE);
+
+/* ********************************************************************************************** */
+
+
+    private void rebuild(Context c, List<User> users){
+        Log.d(TAG, "rebuild: " + users.size());
+        if (users.isEmpty()){
+            c.deleteFile(CONTACTS_DATABASE);
             return;
         }
 
         try {
-            FileOutputStream fos = mContext.openFileOutput(CONTACTS_DATABASE, Context.MODE_APPEND);
+            FileOutputStream fos = c.openFileOutput(CONTACTS_DATABASE, Context.MODE_APPEND);
+            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
+            Log.d(TAG, "rebuild: size=" + users.size());
             for (User u : users){
-                Log.v(TAG, "write: " + u.toString());
-                fos.write(u.toString().getBytes());
+                bw.write(u.toString());
+                bw.newLine();
             }
+            bw.close();
             fos.close();
         } catch (IOException e) {
             e.printStackTrace();
@@ -208,8 +181,7 @@ public class Contacts implements Connector.Callback{
 
 /* ********************************************************************************************** */
 
-    public interface Callback {
-        void onUpdateMyself();
+    public interface UserChangeCallback {
         void onUpdateUsers();
     }
 }
