@@ -1,6 +1,6 @@
 package com.talkie.wtalkie.contacts;
 
-import android.bluetooth.BluetoothAdapter;
+
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
@@ -16,6 +16,7 @@ import java.util.UUID;
 
 import static android.text.TextUtils.isEmpty;
 
+
 /*
 **
 ** ${FILE}
@@ -28,16 +29,20 @@ import static android.text.TextUtils.isEmpty;
 public class Identity {
     private static final String TAG = "Identity";
 
-    private Identity mInstance;
-    private Context mContext;
-
+    private static Identity mInstance;
     private TelephonyManager mTm;
     private WifiManager mWm;
 
-    public Identity(Context c){
-        mContext = c;
+    private Identity(Context c){
         mTm = (TelephonyManager) c.getSystemService(Context.TELEPHONY_SERVICE);
-        mWm = (WifiManager) c.getSystemService(Context.WIFI_SERVICE);
+        mWm = (WifiManager) c.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+    }
+
+    public static Identity getInstance(Context c){
+        if (mInstance == null){
+            mInstance = new Identity(c);
+        }
+        return mInstance;
     }
 
     public String genShortUuid(){

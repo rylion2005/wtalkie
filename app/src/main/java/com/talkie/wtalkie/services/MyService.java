@@ -18,6 +18,9 @@ import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.sockets.Connector;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class MyService extends Service {
     private static final String TAG = "MyService";
@@ -25,14 +28,13 @@ public class MyService extends Service {
     private Contacts mContacts;
     private Connector mConnector;
 
-    private final Recorder mRecorder = Recorder.newInstance();
-    private final Tracker mTracker = Tracker.newInstance();
+    private List<ConnectivityCallback> mCallbacks = new ArrayList<>();
 
 /* ********************************************************************************************** */
 
 
     public MyService() {
-        Log.v(TAG, "new an instance");
+        Log.v(TAG, "new MyService");
     }
 
     @Override
@@ -50,6 +52,7 @@ public class MyService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.v(TAG, ":onBind");
         return new MyBinder();
     }
 
@@ -78,15 +81,16 @@ public class MyService extends Service {
 
 
 /* ********************************************************************************************** */
-    public void registerAudioRecord(Recorder.Callback cb){
-        mRecorder.register(cb);
+
+    public void registerConnectivity(ConnectivityCallback cb){
+        if (cb != null) {
+            mCallbacks.add(cb);
+        }
     }
 
-    public void playRecord(boolean start){
-        if (start) {
-            mRecorder.start();
-        } else {
-            mRecorder.stop();
+    public void registerContacts(Contacts.Callback cb){
+        if (cb != null){
+            mContacts.register(cb);
         }
     }
 
@@ -130,8 +134,38 @@ public class MyService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.v(TAG, "onReceive: " + intent);
-            mConnector.broadcast(mContacts.getMyself().toString().getBytes(),
-                    mContacts.getMyself().toString().length());
+            boolean connectivity = false;
+
+            mContacts.onUpdateMyself(); // always update
+            if (intent.getAction().equals(ConnectivityManager.CONNECTIVITY_ACTION)){
+
+                int networkType = intent.getIntExtra(ConnectivityManager.EXTRA_NETWORK_TYPE, -1);
+                if ( networkType == ConnectivityManager.TYPE_WIFI){
+                    connectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+                    for (ConnectivityCallback cb : mCallbacks) {
+                        cb.onWifiConnectivity(connectivity);
+                    }
+                }
+
+                if ( networkType == ConnectivityManager.TYPE_MOBILE){
+                    connectivity = intent.getBooleanExtra(ConnectivityManager.EXTRA_NO_CONNECTIVITY, false);
+                    for (ConnectivityCallback cb : mCallbacks) {
+                        cb.onMobileConnectivity(connectivity);
+                    }
+                }
+            }
+
+            //if (connectivity){
+                mConnector.broadcast(mContacts.getMyself().toString().getBytes(),
+                        mContacts.getMyself().toString().length());
+            //}
         }
+    }
+
+/* ********************************************************************************************** */
+
+    public interface ConnectivityCallback{
+        void onWifiConnectivity(boolean connected);
+        void onMobileConnectivity(boolean connected);
     }
 }

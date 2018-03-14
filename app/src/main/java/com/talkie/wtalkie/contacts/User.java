@@ -1,5 +1,7 @@
 package com.talkie.wtalkie.contacts;
 
+import android.util.Log;
+
 /*
 **
 ** ${FILE}
@@ -10,9 +12,27 @@ package com.talkie.wtalkie.contacts;
 **     
 */
 public class User {
-    String uuid;
-    String serial;
-    String address;
+    private String uuid;
+    private String serial;
+    private String address;
+
+    // New user from a csv bytes
+    public static User fromBytes(byte[] bytes, int length){
+        if (bytes == null){
+            return null;
+        }
+        User user = new User();
+        String buffer = new String(bytes);
+        int pos1 = buffer.indexOf(',');
+        int pos2 = buffer.lastIndexOf(',');
+        String uuid = buffer.substring(0, pos1);
+        String serial = buffer.substring(pos1+1, pos2);
+        String ip = buffer.substring(pos2+1, length);
+        user.setUuid(uuid);
+        user.setSerial(serial);
+        user.setAddress(ip);
+        return user;
+    }
 
     public String getUuid() {
         return uuid;

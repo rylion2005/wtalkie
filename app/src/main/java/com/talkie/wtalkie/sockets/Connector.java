@@ -43,7 +43,6 @@ public class Connector {
         Log.v(TAG, "broadcast: " + length);
         mBytesBuffer= myself.clone();
         mBytesLength = length;
-        Log.v(TAG, "thread alive: " + mSendThread.isAlive());
 		if (!mSendThread.isAlive()){
             mSendThread.start();
         }

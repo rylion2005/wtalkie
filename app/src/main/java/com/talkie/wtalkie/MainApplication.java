@@ -49,6 +49,6 @@ public class MainApplication extends Application  {
 
     private void init(){
         Log.v(TAG, "init...");
-        startService(new Intent(getApplicationContext(), MyService.class));
+        //startService(new Intent(getApplicationContext(), MyService.class));
     }
 }

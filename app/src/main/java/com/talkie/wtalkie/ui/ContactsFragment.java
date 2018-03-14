@@ -28,20 +28,13 @@ import java.util.List;
 
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
-
     private static final int SELECT_STATE_IDLE = 0;
     private static final int SELECT_STATE_GROUP_TALK = 1;
     private static final int SELECT_STATE_MAX = 2;
 
-
-    // handler messages
-    private static final int MESSAGE_UPDATE_MYSELF = 0xC1;
-    private static final int MESSAGE_UPDATE_USER = 0xC2;
-
     private int mState = SELECT_STATE_IDLE;
     private boolean mChecked = false;
 
-    private final MyHandler mHandler = new MyHandler();
     private MyBaseAdapter mAdapter;
     private Contacts mContacts;
 
@@ -135,9 +128,16 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         return super.onOptionsItemSelected(item);
     }
 
-    /* ********************************************************************************************** */
+/* ********************************************************************************************** */
 
-    public void refreshContacts(boolean showCheckbox){
+    public void updateUsers(){
+        //TODO:
+    }
+
+/* ********************************************************************************************** */
+
+
+    private void refreshContacts(boolean showCheckbox){
         Log.v(TAG, "refreshContacts");
         if ((mAdapter == null)){
             return;
@@ -147,22 +147,19 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             mAdapter.clearItemList();
         }
 
-        Log.v(TAG, "Contacts: " + mContacts.getContacts().size());
-        for (User user : mContacts.getContacts()) {
+        Contacts c = Contacts.getInstance();
+        for (User user : c.getContacts()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
-            if (showCheckbox){
+            if (showCheckbox) {
                 vh.setView(R.id.CHB_SelectContacts, View.VISIBLE);
             } else {
                 vh.setView(R.id.CHB_SelectContacts, View.GONE);
             }
         }
-
         mAdapter.notifyDataSetChanged();
     }
 
-
-/* ********************************************************************************************** */
 
     private void initViews(View rootView){
         ActionBar ab = getActivity().getActionBar();
@@ -176,43 +173,9 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     private void init(){
         mContacts = Contacts.getInstance();
-        mContacts.register(new ContactsCallback());
     }
-
 
 /* ********************************************************************************************** */
 
-
-    class ContactsCallback implements Contacts.Callback{
-        @Override
-        public void onUpdateMyself() {
-            mHandler.sendEmptyMessage(MESSAGE_UPDATE_MYSELF);
-        }
-
-        @Override
-        public void onUpdateUsers() {
-            mHandler.sendEmptyMessage(MESSAGE_UPDATE_USER);
-        }
-    }
-
-
-/* ********************************************************************************************** */
-
-
-    class MyHandler extends Handler {
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what){
-                case MESSAGE_UPDATE_MYSELF:
-                    break;
-
-                case MESSAGE_UPDATE_USER:
-                    refreshContacts(false);
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
 
 }
