@@ -13,6 +13,7 @@ import android.os.IBinder;
 import android.util.Log;
 import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.contacts.User;
+import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.sockets.Connector;
 
 import java.util.ArrayList;
@@ -28,6 +29,7 @@ public class MyService extends Service {
 
     private Contacts mContacts;
     private Connector mConnector;
+    private Users mUsers;
 
     private final List<ConnectivityCallback> mCallbacks = new ArrayList<>();
 
@@ -36,8 +38,6 @@ public class MyService extends Service {
 
     public MyService() {
         Log.v(TAG, "new MyService");
-
-        (new Timer()).schedule((new BeatHearting()), 10, TIMER_INTERVAL);
     }
 
     @Override
@@ -85,13 +85,13 @@ public class MyService extends Service {
 
 /* ********************************************************************************************** */
 
-    public void register(ConnectivityCallback conn, Contacts.UserChangeCallback cont){
+    public void register(ConnectivityCallback conn, Users.UserChangeCallback cont){
         if (conn != null) {
             mCallbacks.add(conn);
         }
 
         if (cont != null){
-            mContacts.register(cont);
+            mUsers.register(cont);
         }
     }
 
@@ -101,10 +101,13 @@ public class MyService extends Service {
     private void init(){
         Log.v(TAG, "init()");
         mContacts = Contacts.getInstance();
+        mUsers = new Users();
         mConnector = new Connector();
         mConnector.register(new ConnectorCallback());
 
         registerActions();
+
+        (new Timer()).schedule((new BeatHearting()), 10, TIMER_INTERVAL);
     }
 
     private void registerActions(){
@@ -127,6 +130,8 @@ public class MyService extends Service {
         User.updateSharePreference(getApplicationContext());
         User u = User.fromSharePreference(getApplicationContext());
         mConnector.broadcast(u.toString().getBytes(),u.toString().length());
+
+        mUsers.updateState();
     }
 
 
@@ -176,6 +181,7 @@ public class MyService extends Service {
             User u = User.fromBytes(data, length);
             Log.v(TAG, "incoming user: " + u.toString());
             mContacts.updateDatabase(getApplicationContext(), u);
+            mUsers.update(data, length);
         }
     }
 

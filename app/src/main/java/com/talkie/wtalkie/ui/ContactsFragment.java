@@ -22,6 +22,7 @@ import android.widget.ListView;
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.contacts.User;
+import com.talkie.wtalkie.contacts.Users;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -145,10 +146,16 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             mAdapter.clearItemList();
         }
 
-        Contacts c = Contacts.getInstance();
-        for (User user : c.fromDatabase(getActivity().getApplicationContext())) {
+        //Contacts c = Contacts.getInstance();
+        //for (User user : c.fromDatabase(getActivity().getApplicationContext())) {
+        for (User user : Users.findAll()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
+            String state = "on";
+            if (user.getState() == User.STATE_OFFLINE){
+                state = "of";
+            }
+            vh.setTextView(R.id.TXV_Presence, state);
             if (showCheckbox) {
                 vh.setView(R.id.CHB_SelectContacts, View.VISIBLE);
             } else {

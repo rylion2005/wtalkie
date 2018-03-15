@@ -115,9 +115,9 @@ public class Contacts {
         users.clear();
 
         // notify clients
-        for (UserChangeCallback cb : mCallbacks){
-            cb.onUpdateUsers();
-        }
+        //for (UserChangeCallback cb : mCallbacks){
+        //    cb.onUpdateUsers();
+        //}
 
     }
 

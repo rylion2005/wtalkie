@@ -24,6 +24,14 @@
         android:paddingEnd="4dp"
         android:textSize="18sp"
         android:text="0.0.0.0"/>
+    <TextView
+        android:id="@+id/TXV_Presence"
+        android:layout_width="48dp"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:textAllCaps="false"
+        android:textSize="18sp"
+        android:text="on"/>
 
     <CheckBox
         android:id="@+id/CHB_SelectContacts"

@@ -1,12 +1,12 @@
 package com.talkie.wtalkie;
 
+
 import android.app.Application;
 import android.content.Context;
-import android.content.Intent;
 import android.content.res.Configuration;
 import android.util.Log;
 
-import com.talkie.wtalkie.services.MyService;
+import org.litepal.LitePal;
 
 
 public class MainApplication extends Application  {
@@ -49,6 +49,10 @@ public class MainApplication extends Application  {
 
     private void init(){
         Log.v(TAG, "init...");
+
+        // LitePal initialize ASAP
+        LitePal.initialize(this);
+
         //startService(new Intent(getApplicationContext(), MyService.class));
     }
 }

@@ -16,6 +16,7 @@ import android.view.View;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Contacts;
+import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.services.MyService;
 
 
@@ -139,10 +140,10 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    class EventCallback implements Contacts.UserChangeCallback, MyService.ConnectivityCallback{
+    class EventCallback implements Users.UserChangeCallback, MyService.ConnectivityCallback{
 
         @Override
-        public void onUpdateUsers() {
+        public void onUserChanged() {
             mHandler.sendEmptyMessage(MESSAGE_UPDATE_USERS);
         }
 
