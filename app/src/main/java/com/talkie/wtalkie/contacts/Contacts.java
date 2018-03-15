@@ -150,11 +150,9 @@ public class Contacts {
 
     private void rebuild(Context c, List<User> users){
         Log.d(TAG, "rebuild: " + users.size());
-        if (users.isEmpty()){
-            c.deleteFile(CONTACTS_DATABASE);
-            return;
-        }
 
+        // delete source file firstly
+        c.deleteFile(CONTACTS_DATABASE);
         try {
             FileOutputStream fos = c.openFileOutput(CONTACTS_DATABASE, Context.MODE_APPEND);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));

@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
+
 
 
 /*
@@ -51,9 +51,12 @@ public class Streamer {
         Log.v(TAG, "flush: " + length);
         mSender.flush(stream, length);
         if (!mSender.isRunning()){
-            mSender.setRunning(true);
             (new Thread(mSender)).start();
         }
+    }
+
+    public void stop(){
+        mSender.setRunning(false);
     }
 
 
@@ -62,11 +65,21 @@ public class Streamer {
     class Listener implements Runnable {
         private volatile boolean mRunning = false;
 
+        private MulticastSocket mSocket;
         private final DatagramPacket mPacket = new DatagramPacket(
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
 
-        private Listener(){ }
+        private Listener(){
+            try {
+                mSocket = new MulticastSocket(SOCKET_PORT);
+                mSocket.setTimeToLive(1);
+                mSocket.setBroadcast(true);
+                mSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         public void setRunning(boolean running){
             mRunning = running;
@@ -77,25 +90,18 @@ public class Streamer {
             mRunning = true;
             Log.v(TAG, ":Listener: running ...");
 
-
             while (mRunning){
                 try {
-                    MulticastSocket ms = new MulticastSocket(SOCKET_PORT);
-                    ms.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
-                    ms.setTimeToLive(32);
-                    ms.receive(mPacket);
-                    if (mPacket.getLength() > 0){
-                        Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
-                        if (mCallback != null){
-                            mCallback.onStreamBytes(mPacket.getData(), mPacket.getLength());
-                        }
-                        mPacket.setLength(0);
+                    mSocket.receive(mPacket);
+                    Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
+                    if (mCallback != null){
+                        mCallback.onStreamBytes(mPacket.getData(), mPacket.getLength());
                     }
-                    ms.close();
                 } catch (IOException e) {
                     Log.e(TAG, ":Listener: IOException !");
                 }
             }
+            mSocket.close();
             Log.v(TAG, ":Listener: exit !");
         }
     }
@@ -104,6 +110,9 @@ public class Streamer {
     class Sender implements Runnable {
 
         volatile boolean mRunning = false;
+
+        private MulticastSocket mSocket;
+        private InetAddress mInetAddress;
         private final DatagramPacket mPacket = new DatagramPacket(
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
@@ -111,9 +120,16 @@ public class Streamer {
 
         private Sender(){
             try {
-                mPacket.setAddress(InetAddress.getByName(MULTICAST_ADDRESS));
+                mInetAddress = InetAddress.getByName(MULTICAST_ADDRESS);
+                mSocket = new MulticastSocket();
+                mSocket.setTimeToLive(1);
+                mSocket.setLoopbackMode(true);
+                mSocket.setBroadcast(true);
+                mSocket.joinGroup(mInetAddress);
+
+                mPacket.setAddress(mInetAddress);
                 mPacket.setPort(SOCKET_PORT);
-            } catch (UnknownHostException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -138,18 +154,16 @@ public class Streamer {
             mRunning = true;
 
             try {
-                MulticastSocket ms = new MulticastSocket();
-                ms.setLoopbackMode(true);
-
                 while(mRunning) {
                     synchronized (mPacket) {
                         if (mPacket.getLength() > 0) {
-                            ms.send(mPacket);
-                            mPacket.setLength(0);
+                            mSocket.send(mPacket);
+                        } else {
+                            break;
                         }
                     }
                 }
-                ms.close();
+                mSocket.close();
             } catch (IOException e) {
                 Log.e(TAG, ":Sender: IOException !");
                 e.printStackTrace();

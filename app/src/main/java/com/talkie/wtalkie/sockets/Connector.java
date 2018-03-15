@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
-import java.net.UnknownHostException;
+
 
 
 /*
@@ -41,16 +41,14 @@ import java.net.UnknownHostException;
 public class Connector {
     public static final String TAG = "Connector";
 
-    private static final String MULTICAST_ADDRESS = "239.230.200.100"; //"233.230.200.100";
+    private static final String MULTICAST_ADDRESS = "224.0.0.111";
     private static final int SOCKET_PORT = 52525;
     private static final int SOCKET_BUFFER_BYTES = 1024;
 
     private final Listener mListener = new Listener();
     private final Sender mSender = new Sender();
-    private final Thread mSendThread = new Thread(mSender);
 
     private MessageCallback mCallback;
-
 
 
 /* ============================================================================================== */
@@ -69,8 +67,8 @@ public class Connector {
     public void broadcast(byte[] myself, int length){
         Log.v(TAG, "broadcast: " + length);
         mSender.flush(myself, length);
-		if (!mSendThread.isAlive()){
-            mSendThread.start();
+        if (!mSender.isRunning()){
+            (new Thread(mSender)).start();
         }
     }
 
@@ -80,11 +78,21 @@ public class Connector {
     class Listener implements Runnable{
         private volatile boolean mRunning = false;
 
+        private MulticastSocket mSocket;
         private final DatagramPacket mPacket = new DatagramPacket(
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
 
-        private Listener(){ }
+        private Listener(){
+            try {
+                mSocket = new MulticastSocket(SOCKET_PORT);
+                mSocket.setTimeToLive(1);
+                mSocket.setBroadcast(true);
+                mSocket.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         private void setRunning(boolean running){
             mRunning = running;
@@ -100,65 +108,70 @@ public class Connector {
             Log.v(TAG, ":Listener: running ...");
             while (mRunning){
                 try {
-                    MulticastSocket ms = new MulticastSocket(SOCKET_PORT);
-                    ms.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
-                    ms.setTimeToLive(32);
-                    ms.receive(mPacket);
-                    if (mPacket.getLength() > 0){
-                        Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
-                        if (mCallback != null){
-                            mCallback.onUpdateUser(mPacket.getData(), mPacket.getLength());
-                        }
-                        mPacket.setLength(0);
+                    mSocket.receive(mPacket);
+                    Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
+                    if (mCallback != null){
+                        mCallback.onUpdateUser(mPacket.getData(), mPacket.getLength());
                     }
-                    ms.close();
+
                 } catch (IOException e) {
                     Log.e(TAG, ":Listener: IOException !");
                 }
             }
+            mSocket.close();
             Log.v(TAG, ":Listener: exit !");
         }
     }
 
 
     class Sender implements Runnable {
+        private volatile boolean mRunning = false;
+
         private final DatagramPacket mPacket = new DatagramPacket(
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
 
+        private InetAddress mInetAddress;
+
         private Sender(){
             try {
-                mPacket.setAddress(InetAddress.getByName(MULTICAST_ADDRESS));
+                mInetAddress = InetAddress.getByName(MULTICAST_ADDRESS);
+
+                mPacket.setAddress(mInetAddress);
                 mPacket.setPort(SOCKET_PORT);
-            } catch (UnknownHostException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
 
+        private void setRunning(boolean running){
+            mRunning = running;
+        }
+
+        private boolean isRunning(){
+            return mRunning;
+        }
+
         private void flush(byte[] bytes, int length){
-            synchronized (mPacket) {
-                mPacket.setData(bytes, 0, length);
-            }
+            mPacket.setData(bytes, 0, length);
         }
 
         @Override
         public void run() {
-            Log.v(TAG, ":Sender: running >>>>>>>>>>");
+            Log.v(TAG, ":Sender: >>>");
             try {
                 MulticastSocket ms = new MulticastSocket();
+                ms.setTimeToLive(1);
                 ms.setLoopbackMode(true);
-                synchronized (mPacket) {
-                    if (mPacket.getLength() > 0) {
-                        ms.send(mPacket);
-                        mPacket.setLength(0);
-                    }
-                }
+                ms.setBroadcast(true);
+                ms.joinGroup(mInetAddress);
+                ms.send(mPacket);
                 ms.close();
             } catch (IOException e) {
                 Log.e(TAG, ":Sender: IOException !");
                 e.printStackTrace();
             }
-            Log.v(TAG, ":Sender: exit !!!!!!!!!!");
+            Log.v(TAG, ":Sender: ~~~");
         }
     }
 
