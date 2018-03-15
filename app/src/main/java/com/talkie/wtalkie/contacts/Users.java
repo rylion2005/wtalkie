@@ -64,8 +64,8 @@ public class Users {
         Log.d(TAG, "updateState");
         User u = new User();
         u.setState(User.STATE_OFFLINE);
-        // FIXME: 18-3-15 update state by elapsed time
-        //u.updateAll("elapse + 60000 < ?", );
+        String currentMs = Long.toString(System.currentTimeMillis());
+        u.updateAll("elapse + 60000 < ?", currentMs);
         if (mCallback != null) {
             mCallback.onUserChanged();
         }

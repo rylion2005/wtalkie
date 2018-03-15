@@ -162,7 +162,7 @@ public class Connector {
             try {
                 MulticastSocket ms = new MulticastSocket();
                 ms.setTimeToLive(1);
-                //ms.setLoopbackMode(true);
+                ms.setLoopbackMode(true);
                 ms.setBroadcast(true);
                 ms.joinGroup(mInetAddress);
                 ms.send(mPacket);
