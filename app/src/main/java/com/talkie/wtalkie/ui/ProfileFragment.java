@@ -3,8 +3,6 @@ package com.talkie.wtalkie.ui;
 import android.app.Fragment;
 import android.content.Context;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -12,15 +10,12 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.Contacts;
-import com.talkie.wtalkie.contacts.Identity;
 import com.talkie.wtalkie.contacts.User;
 
 
 public class ProfileFragment extends Fragment{
     private static final String TAG = "ProfileFragment";
 
-    private Context mContext;
     private View mView;
 
 
@@ -48,9 +43,8 @@ public class ProfileFragment extends Fragment{
                              ViewGroup container,
                              Bundle savedInstanceState) {
         Log.v(TAG, "onCreateView");
-        mContext = getActivity().getApplicationContext();
         mView = inflater.inflate(R.layout.fragment_profile, container, false);
-        updateViews();
+        refreshViews();
         return mView;
     }
 
@@ -77,7 +71,7 @@ public class ProfileFragment extends Fragment{
 
 /* ********************************************************************************************** */
 
-    private void updateViews(){
+    public void refreshViews(){
         if (mView == null){
             return;
         }

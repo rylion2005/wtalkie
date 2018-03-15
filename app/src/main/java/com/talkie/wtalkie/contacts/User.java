@@ -82,6 +82,21 @@ public class User {
         return user;
     }
 
+    public static void updateSharePreference(Context c){
+        final String MYSELF = "myself";
+        Identity id = Identity.getInstance(c);
+        SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        String uuid = sp.getString("uuid", null);
+        if (null == uuid){
+            uuid = id.genShortUuid();
+            editor.putString("uuid", uuid);
+        }
+        editor.putString("serial", id.getSerial());
+        editor.putString("address", id.getLocalAddress());
+        editor.apply();
+    }
+
 
 /* ********************************************************************************************** */
 

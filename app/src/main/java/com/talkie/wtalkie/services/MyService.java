@@ -17,10 +17,14 @@ import com.talkie.wtalkie.sockets.Connector;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class MyService extends Service {
     private static final String TAG = "MyService";
+
+    private static final int TIMER_INTERVAL = 10 * 1000; //ms
 
     private Contacts mContacts;
     private Connector mConnector;
@@ -32,6 +36,8 @@ public class MyService extends Service {
 
     public MyService() {
         Log.v(TAG, "new MyService");
+
+        (new Timer()).schedule((new BeatHearting()), 10, TIMER_INTERVAL);
     }
 
     @Override
@@ -104,8 +110,10 @@ public class MyService extends Service {
     private void registerActions(){
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_BOOT_COMPLETED);
-        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        //intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+        //intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+        intentFilter.addAction(Intent.ACTION_AIRPLANE_MODE_CHANGED);
+        //intentFilter.addAction(Intent.ACTION_BATTERY_CHANGED);
         intentFilter.addAction(WifiManager.SCAN_RESULTS_AVAILABLE_ACTION);
         intentFilter.addAction(WifiManager.WIFI_STATE_CHANGED_ACTION);
         intentFilter.addAction(WifiManager.NETWORK_STATE_CHANGED_ACTION);
@@ -113,6 +121,12 @@ public class MyService extends Service {
         intentFilter.addAction(WifiManager.SUPPLICANT_STATE_CHANGED_ACTION);
         intentFilter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         getApplicationContext().registerReceiver(new MyReceiver(), intentFilter);
+    }
+
+    private void heartBeat(){
+        User.updateSharePreference(getApplicationContext());
+        User u = User.fromSharePreference(getApplicationContext());
+        mConnector.broadcast(u.toString().getBytes(),u.toString().length());
     }
 
 
@@ -150,16 +164,13 @@ public class MyService extends Service {
                 }
             }
 
-            //if (connectivity){
-                User u = User.fromSharePreference(getApplicationContext());
-                mConnector.broadcast(u.toString().getBytes(),u.toString().length());
-            //}
+            heartBeat();
         }
     }
 
 /* ********************************************************************************************** */
 
-    public class ConnectorCallback implements Connector.Callback {
+    public class ConnectorCallback implements Connector.MessageCallback {
         @Override
         public void onUpdateUser(byte[] data, int length) {
             User u = User.fromBytes(data, length);
@@ -173,5 +184,14 @@ public class MyService extends Service {
     public interface ConnectivityCallback{
         void onWifiConnectivity(boolean connected);
         void onMobileConnectivity(boolean connected);
+    }
+
+/* ********************************************************************************************** */
+
+    class BeatHearting extends TimerTask{
+        @Override
+        public void run() {
+            heartBeat();
+        }
     }
 }

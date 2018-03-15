@@ -124,10 +124,14 @@ public class MainActivity extends BaseActivity {
         public void handleMessage(Message msg) {
             switch (msg.what){
                 case MESSAGE_UPDATE_MYSELF:
-                    //TODO
+                    if (mCurrentFragment == mProfileFragment){
+                        mProfileFragment.refreshViews();
+                    }
                     break;
                 case MESSAGE_UPDATE_USERS:
-                    //TODO
+                    if (mCurrentFragment == mContactsFragment){
+                        mContactsFragment.refreshViews();
+                    }
                     break;
                 default:
                     break;

@@ -30,7 +30,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     private static final String TAG = "ContactsFragment";
     private static final int SELECT_STATE_IDLE = 0;
     private static final int SELECT_STATE_GROUP_TALK = 1;
-    private static final int SELECT_STATE_MAX = 2;
 
     private int mState = SELECT_STATE_IDLE;
     private boolean mChecked = false;
@@ -129,8 +128,8 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
 /* ********************************************************************************************** */
 
-    public void updateUsers(){
-        //TODO:
+    public void refreshViews(){
+        refreshContacts(mChecked);
     }
 
 /* ********************************************************************************************** */

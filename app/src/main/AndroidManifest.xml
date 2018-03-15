@@ -4,7 +4,6 @@
 
     <!-- Boot-->
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-
     <!-- Network -->
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
@@ -12,14 +11,14 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_MULTICAST_STATE"/>
-
     <!-- Audio -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.CAPTURE_AUDIO_OUTPUT" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
-
     <!-- Phone -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <!-- Battery Statistics-->
+    <uses-permission android:name="android.permission.BATTERY_STATS" />
 
 
     <application

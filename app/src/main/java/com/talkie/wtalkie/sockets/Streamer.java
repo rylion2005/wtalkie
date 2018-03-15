@@ -62,6 +62,10 @@ public class Streamer {
     class Listener implements Runnable {
         private volatile boolean mRunning = false;
 
+        private final DatagramPacket mPacket = new DatagramPacket(
+                new byte[SOCKET_BUFFER_BYTES],
+                SOCKET_BUFFER_BYTES);
+
         private Listener(){ }
 
         public void setRunning(boolean running){
@@ -76,19 +80,16 @@ public class Streamer {
 
             while (mRunning){
                 try {
-                    byte[] data = new byte[SOCKET_BUFFER_BYTES];
-                    InetAddress addr = InetAddress.getByName(MULTICAST_ADDRESS);
                     MulticastSocket ms = new MulticastSocket(SOCKET_PORT);
-                    ms.joinGroup(addr);
+                    ms.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
                     ms.setTimeToLive(32);
-                    DatagramPacket packet = new DatagramPacket(data, data.length);
-                    ms.receive(packet);
-                    int length = packet.getLength();
-                    Log.v(TAG, ":Listener: receive: " + length);
-                    if (length > 0){
+                    ms.receive(mPacket);
+                    if (mPacket.getLength() > 0){
+                        Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
                         if (mCallback != null){
-                            mCallback.onStreamBytes(packet.getData(), length);
+                            mCallback.onStreamBytes(mPacket.getData(), mPacket.getLength());
                         }
+                        mPacket.setLength(0);
                     }
                     ms.close();
                 } catch (IOException e) {
@@ -144,7 +145,7 @@ public class Streamer {
                     synchronized (mPacket) {
                         if (mPacket.getLength() > 0) {
                             ms.send(mPacket);
-                            mPacket.setLength(-1);
+                            mPacket.setLength(0);
                         }
                     }
                 }
