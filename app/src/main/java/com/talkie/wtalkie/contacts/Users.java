@@ -1,11 +1,9 @@
 package com.talkie.wtalkie.contacts;
 
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import org.litepal.LitePal;
-import org.litepal.crud.DataSupport;
-
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -25,6 +23,7 @@ import java.util.List;
 ** *************************************************************************************************
 */
 public class Users {
+    private static final String TAG = "Users";
 
     private UserChangeCallback mCallback;
 
@@ -62,9 +61,11 @@ public class Users {
     }
 
     public void updateState(){
+        Log.d(TAG, "updateState");
         User u = new User();
         u.setState(User.STATE_OFFLINE);
-        u.updateAll("elapse - 60000 > ?", "0");
+        // FIXME: 18-3-15 update state by elapsed time
+        //u.updateAll("elapse + 60000 < ?", );
         if (mCallback != null) {
             mCallback.onUserChanged();
         }

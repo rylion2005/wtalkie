@@ -15,7 +15,6 @@ import android.util.Log;
 import android.view.View;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.services.MyService;
 

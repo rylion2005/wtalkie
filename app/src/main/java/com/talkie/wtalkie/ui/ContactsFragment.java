@@ -3,11 +3,8 @@ package com.talkie.wtalkie.ui;
 import android.app.ActionBar;
 import android.content.Context;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.app.Fragment;
-import android.os.Handler;
-import android.os.Message;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -20,12 +17,8 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.Contacts;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
@@ -146,8 +139,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             mAdapter.clearItemList();
         }
 
-        //Contacts c = Contacts.getInstance();
-        //for (User user : c.fromDatabase(getActivity().getApplicationContext())) {
         for (User user : Users.findAll()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());

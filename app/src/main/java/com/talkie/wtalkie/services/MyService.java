@@ -11,7 +11,7 @@ import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
 import android.util.Log;
-import com.talkie.wtalkie.contacts.Contacts;
+
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.sockets.Connector;
@@ -27,7 +27,6 @@ public class MyService extends Service {
 
     private static final int TIMER_INTERVAL = 10 * 1000; //ms
 
-    private Contacts mContacts;
     private Connector mConnector;
     private Users mUsers;
 
@@ -100,7 +99,6 @@ public class MyService extends Service {
 
     private void init(){
         Log.v(TAG, "init()");
-        mContacts = Contacts.getInstance();
         mUsers = new Users();
         mConnector = new Connector();
         mConnector.register(new ConnectorCallback());
@@ -178,9 +176,6 @@ public class MyService extends Service {
     public class ConnectorCallback implements Connector.MessageCallback {
         @Override
         public void onUpdateUser(byte[] data, int length) {
-            User u = User.fromBytes(data, length);
-            Log.v(TAG, "incoming user: " + u.toString());
-            mContacts.updateDatabase(getApplicationContext(), u);
             mUsers.update(data, length);
         }
     }

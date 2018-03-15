@@ -3,7 +3,6 @@ package com.talkie.wtalkie.contacts;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
-import android.util.Log;
 
 import org.litepal.crud.DataSupport;
 
@@ -22,11 +21,11 @@ public class User extends DataSupport {
     public static int STATE_OFFLINE = 0xE0;
     public static int STATE_ONLINE = 0xE1;
 
+    private static final String MYSELF = "myself";
+
     private String uuid;
     private String serial;
     private String address;
-
-
     private long elapse;
     private int state;
 
@@ -66,7 +65,6 @@ public class User extends DataSupport {
      ** ----------------------------------------------------------------------
      */
     public static User fromSharePreference(Context c){
-        final String MYSELF = "myself";
 
         User user = new User();
 
@@ -94,7 +92,7 @@ public class User extends DataSupport {
     }
 
     public static void updateSharePreference(Context c){
-        final String MYSELF = "myself";
+
         Identity id = Identity.getInstance(c);
         SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
@@ -157,50 +155,6 @@ public class User extends DataSupport {
 
     public String toString(){
         return uuid + "," + serial + "," + address;
-    }
-
-    public boolean equals(User u){
-        boolean equal = false;
-
-        if (this.toString().equals(u.toString())){
-            equal = true;
-        }
-
-        return equal;
-    }
-
-    public void clone(User u){
-        this.uuid = u.getUuid();
-        this.serial = u.getSerial();
-        this.address = u.getAddress();
-        this.elapse = u.getElapse();
-        this.state = u.getState();
-    }
-
-    public boolean sameSerial(User u){
-        boolean same = false;
-        try {
-            if (u.getSerial().equals(this.serial) && !this.serial.equals("null")){
-                same = true;
-            }
-        } catch (NullPointerException e) {
-            // nothing to do
-        }
-
-        return same;
-    }
-
-    public boolean sameUuid(User u){
-        boolean same = false;
-        try {
-            if (u.getUuid().equals(this.uuid) && !this.uuid.equals("null")){
-                same = true;
-            }
-        } catch (NullPointerException e) {
-            // nothing to do
-        }
-
-        return same;
     }
 
     public boolean isAllEmptyIds(){
