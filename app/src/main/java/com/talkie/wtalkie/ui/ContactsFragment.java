@@ -36,7 +36,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     private boolean mChecked = false;
 
     private MyBaseAdapter mAdapter;
-    private Contacts mContacts;
 
 
 /* ********************************************************************************************** */
@@ -172,7 +171,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void init(){
-        //mContacts = Contacts.getInstance();
+
     }
 
 /* ********************************************************************************************** */

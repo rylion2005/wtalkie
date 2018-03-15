@@ -163,6 +163,7 @@ public class MyService extends Service {
         @Override
         public void onUpdateUser(byte[] data, int length) {
             User u = User.fromBytes(data, length);
+            Log.v(TAG, "incoming user: " + u.toString());
             mContacts.updateDatabase(getApplicationContext(), u);
         }
     }

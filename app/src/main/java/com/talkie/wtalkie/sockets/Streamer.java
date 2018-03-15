@@ -7,8 +7,21 @@ import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.net.UnknownHostException;
 
 
+/*
+** ********************************************************************************
+**
+** Streamer
+**   This class is used to broadcast stream data.
+**
+** USAGE:
+**   Listener MUST be always running
+*    Sender will be always running, and should be stoppable by clients!
+**
+** ********************************************************************************
+*/
 public class Streamer {
     public static final String TAG = "Streamer";
 
@@ -18,8 +31,7 @@ public class Streamer {
 
     private final Listener mListener = new Listener();
     private final Sender mSender = new Sender();
-    private final Thread mSendThread = new Thread(mSender);
-    private Callback mCallback;
+    private StreamCallback mCallback;
 
 
 /* ============================================================================================== */
@@ -29,18 +41,18 @@ public class Streamer {
         (new Thread(mListener)).start();
     }
 
-    public void register(Callback cb){
+    public void register(StreamCallback cb){
         if (cb != null){
             mCallback = cb;
         }
 	}
 
-    public void flushStream(byte[] stream, int length){
-        Log.v(TAG, "flushStream: " + length);
+    public void flush(byte[] stream, int length){
+        Log.v(TAG, "flush: " + length);
         mSender.flush(stream, length);
-        Log.v(TAG, "thread alive: " + mSendThread.isAlive());
-		if (!mSendThread.isAlive()){
-            mSendThread.start();
+        if (!mSender.isRunning()){
+            mSender.setRunning(true);
+            (new Thread(mSender)).start();
         }
     }
 
@@ -52,7 +64,7 @@ public class Streamer {
 
         private Listener(){ }
 
-        public void setRunnable(boolean running){
+        public void setRunning(boolean running){
             mRunning = running;
         }
 
@@ -60,6 +72,8 @@ public class Streamer {
         public void run(){
             mRunning = true;
             Log.v(TAG, ":Listener: running ...");
+
+
             while (mRunning){
                 try {
                     byte[] data = new byte[SOCKET_BUFFER_BYTES];
@@ -68,13 +82,12 @@ public class Streamer {
                     ms.joinGroup(addr);
                     ms.setTimeToLive(32);
                     DatagramPacket packet = new DatagramPacket(data, data.length);
-                    Log.v(TAG, ":Listener: listening ...");
                     ms.receive(packet);
                     int length = packet.getLength();
-                    Log.v(TAG, ":Listener: receive : " + length);
+                    Log.v(TAG, ":Listener: receive: " + length);
                     if (length > 0){
                         if (mCallback != null){
-                            mCallback.onAudioBytes(packet.getData(), length);
+                            mCallback.onStreamBytes(packet.getData(), length);
                         }
                     }
                     ms.close();
@@ -88,33 +101,50 @@ public class Streamer {
 
 
     class Sender implements Runnable {
-        volatile boolean mStop = false;
 
-        private byte[] mBytesBuffer = new byte[SOCKET_BUFFER_BYTES];
-        private int    mBytesLength;
-        private final Object mLock = new Object();
+        volatile boolean mRunning = false;
+        private final DatagramPacket mPacket = new DatagramPacket(
+                new byte[SOCKET_BUFFER_BYTES],
+                SOCKET_BUFFER_BYTES);
+
+
+        private Sender(){
+            try {
+                mPacket.setAddress(InetAddress.getByName(MULTICAST_ADDRESS));
+                mPacket.setPort(SOCKET_PORT);
+            } catch (UnknownHostException e) {
+                e.printStackTrace();
+            }
+        }
 
         private void flush(byte[] bytes, int length){
-            mBytesBuffer = bytes.clone();
-            mBytesLength = length;
+            synchronized (mPacket) {
+                mPacket.setData(bytes, 0, length);
+            }
+        }
+
+        private void setRunning(boolean running){
+            mRunning = running;
+        }
+
+        private boolean isRunning(){
+            return mRunning;
         }
 
         @Override
         public void run() {
             Log.v(TAG, ":Sender: running ...");
+            mRunning = true;
+
             try {
                 MulticastSocket ms = new MulticastSocket();
                 ms.setLoopbackMode(true);
-                while(!mStop) {
-                    if (mBytesLength > 0) {
-                        synchronized (mLock) {
-                            DatagramPacket packet = new DatagramPacket(
-                                    mBytesBuffer,
-                                    mBytesLength,
-                                    InetAddress.getByName(MULTICAST_ADDRESS),
-                                    SOCKET_PORT);
-                            ms.send(packet);
-                            mBytesLength = -1;
+
+                while(mRunning) {
+                    synchronized (mPacket) {
+                        if (mPacket.getLength() > 0) {
+                            ms.send(mPacket);
+                            mPacket.setLength(-1);
                         }
                     }
                 }
@@ -127,7 +157,7 @@ public class Streamer {
         }
     }
 
-    public interface Callback {
-        void onAudioBytes(byte[] data, int length);
+    public interface StreamCallback {
+        void onStreamBytes(byte[] data, int length);
     }
 }

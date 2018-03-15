@@ -66,7 +66,7 @@ public class Contacts {
     }
 
     public void updateDatabase(Context c, User user){
-        Log.d(TAG, "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+        Log.d(TAG, "update database");
         boolean updated = false;
 
         if (user == null){
@@ -79,30 +79,24 @@ public class Contacts {
             return;
         }
 
-        Log.d(TAG, "Incoming/User: " + user.toString());
         // read from database
         List<User> users = fromDatabase(c);
-        Log.d(TAG, "Database size: " + users.size());
         // check if there is a same user
         for (User u : users){
-            Log.d(TAG, "Database/User: " + u.toString());
 
             // find a equaled user
             if (u.equals(user)){
-                Log.d(TAG, "Totally same user !!!!!!");
                 return;
             }
 
             // check serial firstly
             if (u.sameSerial(user)){
-                Log.d(TAG, "same serial");
                 u.setUuid(user.getUuid());
                 u.setAddress(user.getAddress());
                 updated = true;
                 break;
             } else { // check UUID
                 if (u.sameUuid(user)) {
-                    Log.d(TAG, "same uuid");
                     u.setSerial(user.getSerial());
                     u.setAddress(user.getAddress());
                     updated = true;
@@ -125,7 +119,6 @@ public class Contacts {
             cb.onUpdateUsers();
         }
 
-        Log.d(TAG, "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~");
     }
 
     public List<User> fromDatabase(Context c){
@@ -140,7 +133,6 @@ public class Contacts {
                 if (line == null){
                     break;
                 }
-                Log.v(TAG, "read: " + line);
                 users.add(User.fromBytes(line.trim().getBytes(), line.trim().length()));
             }
             fis.close();
@@ -166,7 +158,6 @@ public class Contacts {
         try {
             FileOutputStream fos = c.openFileOutput(CONTACTS_DATABASE, Context.MODE_APPEND);
             BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(fos));
-            Log.d(TAG, "rebuild: size=" + users.size());
             for (User u : users){
                 bw.write(u.toString());
                 bw.newLine();

@@ -1,10 +1,12 @@
 package com.talkie.wtalkie.contacts;
 
 
+import android.content.ContentResolver;
 import android.content.Context;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Build;
+import android.provider.Settings;
 import android.telephony.TelephonyManager;
 
 import java.net.Inet6Address;
@@ -32,10 +34,13 @@ public class Identity {
     private static Identity mInstance;
     private TelephonyManager mTm;
     private WifiManager mWm;
+    private ContentResolver mCr;
+
 
     private Identity(Context c){
         mTm = (TelephonyManager) c.getSystemService(Context.TELEPHONY_SERVICE);
         mWm = (WifiManager) c.getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+        mCr = c.getContentResolver();
     }
 
     public static Identity getInstance(Context c){
@@ -140,12 +145,16 @@ public class Identity {
             }
         } else {
             try {
-                str = mTm.getDeviceId();
+                str = getAndroidId();
             } catch (SecurityException e) {
                 //
             }
         }
         return str;
+    }
+
+    public String getAndroidId(){
+        return Settings.Secure.getString(mCr, Settings.Secure.ANDROID_ID);
     }
 
     public String getWlanMacAddress () {
