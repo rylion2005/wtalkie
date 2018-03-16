@@ -10,14 +10,14 @@ import android.widget.BaseAdapter;
 import android.content.Context;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class MyBaseAdapter extends BaseAdapter {
     private static final String TAG = "MyBaseAdapter";
-    private ArrayList<ViewHolder> mItemsList;
+    private final List<ViewHolder> mItemsList = new ArrayList<>();
     private Context mContext;
     private int mLayoutResId;
-    private final Object mLock = new Object();
 
 
     public static MyBaseAdapter newInstance(Context context, int resId){
@@ -25,13 +25,8 @@ public class MyBaseAdapter extends BaseAdapter {
     }
 
     private MyBaseAdapter(Context context, int resId) {
-        mItemsList = new ArrayList<>();
         mContext = context;
         mLayoutResId = resId;
-    }
-
-    public final Object getLock(){
-        return mLock;
     }
 
  	@Override
@@ -81,22 +76,8 @@ public class MyBaseAdapter extends BaseAdapter {
         return convertView;
     }
 
-    /* ============================================================================================== */
+/* ============================================================================================== */
 
-    /*
-    ** ---------------------------------------------------------------------------
-    ** createViewHolderInstance
-    **   create hold instance and add it to item list
-    **
-    ** @RETURN ViewHolder: ViewHolder instance object.
-    ** @PARAM : None
-    ** @RETURN: None
-    **
-    ** NOTES:
-    **   ......
-    **
-    ** ---------------------------------------------------------------------------
-    */
     public ViewHolder createHolder(){
         ViewHolder vh = new ViewHolder(mContext, mLayoutResId);
         getItemList().add(vh);
@@ -110,7 +91,7 @@ public class MyBaseAdapter extends BaseAdapter {
         getItemList().clear();
     }
 
-    private ArrayList<ViewHolder> getItemList(){
+    private List<ViewHolder> getItemList(){
         return mItemsList;
     }
 
@@ -130,7 +111,7 @@ public class MyBaseAdapter extends BaseAdapter {
         private View myConvertView;
 
         // store all views added to this view holder
-        private ArrayList<View> myViewsList = new ArrayList<>();
+        private final List<View> myViewsList = new ArrayList<>();
 
 
         public ViewHolder(){
@@ -144,7 +125,7 @@ public class MyBaseAdapter extends BaseAdapter {
             myConvertView = LayoutInflater.from(context).inflate(layoutResourceId, null);
         }
 
-        public ArrayList<View> getViewList(){
+        public List<View> getViewList(){
             return myViewsList;
         }
 

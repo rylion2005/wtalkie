@@ -84,13 +84,13 @@ public class MyService extends Service {
 
 /* ********************************************************************************************** */
 
-    public void register(ConnectivityCallback conn, Users.UserChangeCallback cont){
-        if (conn != null) {
-            mCallbacks.add(conn);
+    public void register(ConnectivityCallback cc, Users.UserChangeCallback uc){
+        if (cc != null) {
+            mCallbacks.add(cc);
         }
 
-        if (cont != null){
-            mUsers.register(cont);
+        if (uc != null){
+            mUsers.register(uc);
         }
     }
 

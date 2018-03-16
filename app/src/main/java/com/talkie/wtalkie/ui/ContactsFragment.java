@@ -135,10 +135,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             return;
         }
 
-        synchronized (mAdapter.getLock()) {
-            mAdapter.clearItemList();
-        }
-
+        mAdapter.clearItemList();
         for (User user : Users.findAll()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());

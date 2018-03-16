@@ -122,6 +122,7 @@ public class MainActivity extends BaseActivity {
     class UiHandler extends Handler{
         @Override
         public void handleMessage(Message msg) {
+            Log.v(TAG, "handleMessage: " + msg.toString());
             switch (msg.what){
                 case MESSAGE_UPDATE_MYSELF:
                     if (mCurrentFragment == mProfileFragment){
@@ -143,16 +144,19 @@ public class MainActivity extends BaseActivity {
 
         @Override
         public void onUserChanged() {
+            Log.v(TAG, "onUserChanged");
             mHandler.sendEmptyMessage(MESSAGE_UPDATE_USERS);
         }
 
         @Override
         public void onWifiConnectivity(boolean connected) {
+            Log.v(TAG, "onWifiConnectivity");
             mHandler.sendEmptyMessage(MESSAGE_UPDATE_MYSELF);
         }
 
         @Override
         public void onMobileConnectivity(boolean connected) {
+            Log.v(TAG, "onMobileConnectivity");
             mHandler.sendEmptyMessage(MESSAGE_UPDATE_MYSELF);
         }
     }

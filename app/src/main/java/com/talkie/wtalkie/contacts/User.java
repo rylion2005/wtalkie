@@ -18,8 +18,9 @@ import org.litepal.crud.DataSupport;
 */
 public class User extends DataSupport {
 
-    public static int STATE_OFFLINE = 0xE0;
-    public static int STATE_ONLINE = 0xE1;
+    public static int STATE_ONLINE = 0xA;
+    public static int STATE_OFFLINE = 0xB;
+    public static int STATE_LEAVED = 0xC;
 
     private static final String MYSELF = "myself";
 
