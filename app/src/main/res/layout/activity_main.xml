@@ -8,40 +8,54 @@
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:layout_above="@+id/View_Main">
         <FrameLayout
             android:id="@+id/FRL_FragmentContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
     </LinearLayout>
 
+    <View
+        android:id="@+id/View_Main"
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginTop="2dp"
+        android:layout_marginBottom="2dp"
+        android:layout_above="@+id/LNL_MenuArea"
+        android:background="#7d8790"/>
+
     <LinearLayout
+        android:id="@+id/LNL_MenuArea"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="48dp"
         android:layout_alignParentBottom="true">
         <TextView
+            android:id="@+id/TXV_Sessions"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:background="#876876"
+            android:drawableTop="@mipmap/message"
             android:text="@string/sessions"
             android:onClick="refreshSessions"/>
         <TextView
+            android:id="@+id/TXV_Contacts"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:background="#435789"
+            android:drawableTop="@mipmap/menu_list"
             android:text="@string/contacts"
             android:onClick="refreshContacts"/>
         <TextView
+            android:id="@+id/TXV_Profile"
             android:layout_width="0dp"
             android:layout_weight="1"
             android:layout_height="match_parent"
             android:gravity="center"
-            android:background="#888678"
+            android:drawableTop="@mipmap/icon_account"
             android:text="@string/myself"
             android:onClick="refreshProfile"/>
     </LinearLayout>

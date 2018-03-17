@@ -4,6 +4,6 @@
     xmlns:wtalkie="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/SelectMore"
-        android:title="Select More"
+        android:title="Talk"
         wtalkie:showAsAction="always" />
 </menu>

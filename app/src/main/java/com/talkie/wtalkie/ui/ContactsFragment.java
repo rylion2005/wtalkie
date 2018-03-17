@@ -15,10 +15,14 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.services.MyService;
+
+import static android.view.Window.FEATURE_CUSTOM_TITLE;
 
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
@@ -27,7 +31,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     private int mState = SELECT_STATE_IDLE;
     private boolean mChecked = false;
-
     private MyBaseAdapter mAdapter;
 
 
@@ -47,11 +50,11 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         super.onCreate(savedInstanceState);
         Log.v(TAG, "onCreate");
         init();
-        setHasOptionsMenu(true);
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container,
                              Bundle savedInstanceState) {
         Log.v(TAG, "onCreateView");
         View view = inflater.inflate(R.layout.fragment_contacts, container, false);
@@ -89,7 +92,13 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         Log.v(TAG, "onItemClick: " + position);
         // state machine
         if (mState == SELECT_STATE_IDLE){
-            startActivity(new Intent(this.getActivity(), ChatActivity.class));
+            Intent intent = new Intent(this.getActivity(), ChatActivity.class);
+            String[] hosts = new String[5];
+            String ip = ((TextView)view.findViewById(R.id.TXV_IpAddress)).getText().toString();
+            Log.v(TAG, "ip: " + ip);
+            hosts[0] = ip;
+            intent.putExtra("HostList", hosts);
+            startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK
             CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);
             mChecked = !mChecked;
@@ -99,14 +108,19 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
-        inflater.inflate(R.menu.actionbar_contacts, menu);
         super.onCreateOptionsMenu(menu, inflater);
+        inflater.inflate(R.menu.actionbar_contacts, menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // switch select state between SELECT_STATE_IDLE and SELECT_STATE_GROUP_TALK
         if (item.getItemId() == R.id.SelectMore) {
+
+            Intent intent = new Intent(this.getActivity(), ChatActivity.class);
+            startActivity(intent);
+
+            /*
             if (mState == SELECT_STATE_IDLE){
                 mState = SELECT_STATE_GROUP_TALK;
                 item.setTitle("Originate Talk");
@@ -116,6 +130,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
                 item.setTitle("Select More");
                 refreshContacts(false);
             }
+            */
         }
         return super.onOptionsItemSelected(item);
     }
@@ -128,7 +143,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
 /* ********************************************************************************************** */
 
-
     private void refreshContacts(boolean showCheckbox){
         Log.v(TAG, "refreshContacts");
         if ((mAdapter == null)){
@@ -138,6 +152,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         mAdapter.clearItemList();
         for (User user : Users.findAll()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
+            vh.setTextView(R.id.TXV_Nick, user.getNick());
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());
             String state = "on";
             if (user.getState() == User.STATE_OFFLINE){
@@ -155,9 +170,11 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
 
     private void initViews(View rootView){
-        ActionBar ab = getActivity().getActionBar();
+        setHasOptionsMenu(true);
+        //ActionBar ab = getActivity().getActionBar();
+        //ab.setTitle("Contacts");
 
-        mAdapter = MyBaseAdapter.newInstance(this.getActivity(), R.layout.contact_list);
+        mAdapter = new MyBaseAdapter(this.getActivity(), R.layout.contact_list);
         ListView lsv = rootView.findViewById(R.id.LSV_Contacts);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);

@@ -79,7 +79,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void initListViews(View rootView){
-        mAdapter = MyBaseAdapter.newInstance(this.getActivity(), R.layout.session_list);
+        mAdapter = new MyBaseAdapter(this.getActivity(), R.layout.session_list);
 
         ListView lsv = rootView.findViewById(R.id.LSV_Sessions);
         lsv.setAdapter(mAdapter);

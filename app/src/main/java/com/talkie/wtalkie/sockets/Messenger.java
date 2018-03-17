@@ -9,7 +9,6 @@ import java.net.InetAddress;
 import java.net.MulticastSocket;
 
 
-
 /*
 ** ********************************************************************************
 **
@@ -38,24 +37,29 @@ import java.net.MulticastSocket;
 **
 ** ********************************************************************************
 */
-public class Connector {
+public class Messenger {
     public static final String TAG = "Connector";
 
-    private static final String MULTICAST_ADDRESS = "224.0.0.111";
-    private static final int SOCKET_PORT = 52525;
+    private static final String MULTICAST_ADDRESS = "224.0.0.122";
+    private static final int SOCKET_PORT = 52521;
     private static final int SOCKET_BUFFER_BYTES = 1024;
+
+    private static final Messenger mInstance = new Messenger();
 
     private final Listener mListener = new Listener();
     private final Sender mSender = new Sender();
-
     private MessageCallback mCallback;
 
 
 /* ============================================================================================== */
 
 
-    public Connector(){
+    private Messenger(){
         (new Thread(mListener)).start();
+    }
+
+    public static Messenger getInstance(){
+        return mInstance;
     }
 
     public void register(MessageCallback cb){
@@ -64,9 +68,9 @@ public class Connector {
         }
 	}
 
-    public void broadcast(byte[] myself, int length){
-        Log.v(TAG, "broadcast: " + length);
-        mSender.flush(myself, length);
+    public void sendText(byte[] bytes, int length){
+        Log.v(TAG, "sendText: " + length);
+        mSender.flush(bytes, length);
         if (!mSender.isRunning()){
             (new Thread(mSender)).start();
         }
@@ -110,12 +114,9 @@ public class Connector {
                 try {
                     mSocket.receive(mPacket);
                     Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
-                    Log.v(TAG, ":Listener: offset: " + mPacket.getOffset());
-                    Log.v(TAG, ":r: " + new String(mPacket.getData()));
                     if (mCallback != null){
-                        mCallback.onUpdateUser(mPacket.getData(), mPacket.getLength());
+                        mCallback.onNewMessage(mPacket.getData(), mPacket.getLength());
                     }
-
                 } catch (IOException e) {
                     Log.e(TAG, ":Listener: IOException !");
                 }
@@ -138,7 +139,6 @@ public class Connector {
         private Sender(){
             try {
                 mInetAddress = InetAddress.getByName(MULTICAST_ADDRESS);
-
                 mPacket.setAddress(mInetAddress);
                 mPacket.setPort(SOCKET_PORT);
             } catch (IOException e) {
@@ -155,7 +155,6 @@ public class Connector {
         }
 
         private void flush(byte[] bytes, int length){
-            Log.v(TAG, ":s: " + new String(bytes));
             mPacket.setData(bytes, 0, length);
         }
 
@@ -169,7 +168,6 @@ public class Connector {
                 ms.setBroadcast(true);
                 ms.joinGroup(mInetAddress);
                 ms.send(mPacket);
-                Log.v(TAG, "Sent length: " + mPacket.getLength());
                 ms.close();
             } catch (IOException e) {
                 Log.e(TAG, ":Sender: IOException !");
@@ -179,8 +177,7 @@ public class Connector {
         }
     }
 
-
     public interface MessageCallback {
-        void onUpdateUser(byte[] data, int length);
+        void onNewMessage(byte[] data, int length);
     }
 }

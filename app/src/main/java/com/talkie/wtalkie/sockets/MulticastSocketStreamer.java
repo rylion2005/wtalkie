@@ -5,10 +5,9 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.net.DatagramPacket;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.util.ArrayList;
-import java.util.List;
+import java.net.MulticastSocket;
+
 
 
 /*
@@ -23,26 +22,25 @@ import java.util.List;
 **
 ** ********************************************************************************
 */
-public class Streamer {
-    public static final String TAG = "Streamer";
+public class MulticastSocketStreamer {
+    public static final String TAG = "MulticastSocketStreamer";
 
-    //private static final String SOCKET_ADDRESS = "224.0.0.131";
-    private static final int SOCKET_PORT = 52545;
+    private static final String MULTICAST_ADDRESS = "224.0.0.121";
+    private static final int SOCKET_PORT = 52555;
     private static final int SOCKET_BUFFER_BYTES = 10 * 1024;
 
-    private static final Streamer mInstance = new Streamer();
+    private static final MulticastSocketStreamer mInstance = new MulticastSocketStreamer();
     private final Listener mListener = new Listener();
     private final Sender mSender = new Sender();
-    private final List<Sender> mSenders = new ArrayList<>();
 
 
 /* ********************************************************************************************** */
 
-    private Streamer(){
+    private MulticastSocketStreamer(){
         (new Thread(mListener)).start();
     }
 
-    public static Streamer getInstance(){
+    public static MulticastSocketStreamer getInstance(){
         return mInstance;
     }
 
@@ -50,23 +48,10 @@ public class Streamer {
         mListener.register(cb);
 	}
 
-	public void startStream(List<String> hostList){
-        mSenders.clear();
-        for (String ip : hostList){
-            Sender s = new Sender(ip);
-            mSenders.add(s);
-        }
-    }
-
-    public void startStream(String host){
-        mSender.init(host);
-        (new Thread(mSender)).start();
-    }
-
     public void stopStream(){
         Log.v(TAG, "stop stream: ");
         //synchronized (mSender) {
-            //mSender.stopRunning();
+            mSender.stopRunning();
         //}
     }
 
@@ -90,16 +75,12 @@ public class Streamer {
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
 
-        private Listener(){}
+        private Listener(){ }
 
         private void register(StreamCallback scb){
             if (scb != null){
                 mCallback = scb;
             }
-        }
-
-        public boolean isRunning(){
-            return mRunning;
         }
 
         public void stopRunning(){
@@ -112,13 +93,18 @@ public class Streamer {
             Log.v(TAG, ":Listener: running ...");
             try {
                 while (mRunning) {
-                    DatagramSocket ds = new DatagramSocket(SOCKET_PORT);
-                    ds.receive(mPacket);
-                    Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
-                    if (mCallback != null) {
-                        mCallback.onStreamInput(mPacket.getData(), mPacket.getLength());
+                    MulticastSocket ms = new MulticastSocket(SOCKET_PORT);
+                    ms.setTimeToLive(1);
+                    ms.setBroadcast(true);
+                    ms.joinGroup(InetAddress.getByName(MULTICAST_ADDRESS));
+                    ms.receive(mPacket);
+                    while(mPacket.getLength() > 0) {
+                        Log.v(TAG, ":Listener: receive: " + mPacket.getLength());
+                        if (mCallback != null) {
+                            mCallback.onStreamInput(mPacket.getData(), mPacket.getLength());
+                        }
                     }
-                    ds.close();
+                    ms.close();
                 }
             } catch (IOException e) {
                 Log.e(TAG, ":Listener: IOException !");
@@ -132,29 +118,22 @@ public class Streamer {
     class Sender implements Runnable {
 
         volatile boolean mRunning = false;
-        private DatagramSocket mSocket;
+
+        private MulticastSocket mSocket;
+        private InetAddress mInetAddress;
         private final DatagramPacket mPacket = new DatagramPacket(
                 new byte[SOCKET_BUFFER_BYTES],
                 SOCKET_BUFFER_BYTES);
 
-        public Sender(){}
-
-        private Sender(String host){
+        private Sender(){
             try {
-                InetAddress address = InetAddress.getByName(host);
-                mSocket = new DatagramSocket();
-                mPacket.setAddress(address);
-                mPacket.setPort(SOCKET_PORT);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
-        private void init(String host){
-            try {
-                InetAddress address = InetAddress.getByName(host);
-                mSocket = new DatagramSocket();
-                mPacket.setAddress(address);
+                mInetAddress = InetAddress.getByName(MULTICAST_ADDRESS);
+                mSocket = new MulticastSocket();
+                mSocket.setTimeToLive(1);
+                mSocket.setLoopbackMode(true);
+                mSocket.setBroadcast(true);
+                mSocket.joinGroup(mInetAddress);
+                mPacket.setAddress(mInetAddress);
                 mPacket.setPort(SOCKET_PORT);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -182,17 +161,17 @@ public class Streamer {
 
             try {
                 while(mRunning) {
-                    Log.v(TAG, "Length: " + mPacket.getLength());
-                    if (mPacket.getLength() > 0) {
-                        mSocket.send(mPacket);
-                    }
+                    mSocket.send(mPacket);
                 }
             } catch (IOException e) {
                 Log.e(TAG, ":Sender: IOException !");
                 e.printStackTrace();
             } finally {
-               mSocket.close();
-               mRunning = false;
+                try {
+                    mSocket.close();
+                }catch (NullPointerException e){
+                    // do nothing
+                }
             }
             Log.v(TAG, ":Sender: exit !");
         }

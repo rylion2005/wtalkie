@@ -8,11 +8,132 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
+        android:layout_height="64dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="My Avatar"/>
+        <ImageView
+            android:id="@+id/IMV_Avatar"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
+            android:layout_gravity="center"
+            android:src="@mipmap/default_avatar"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
         android:layout_height="48dp"
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="My Id"/>
+        <TextView
+            android:id="@+id/TXV_UserId"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:textSize="16sp"
+            android:text="Unknown"/>
+        <EditText
+            android:id="@+id/EDT_UserId"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:singleLine="true"
+            android:inputType="text"
+            android:textSize="16sp"
+            android:hint="Unknown"
+            android:imeOptions="actionDone"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="Nick name"/>
+        <TextView
+            android:id="@+id/TXV_NickName"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:textSize="16sp"
+            android:text="Unknown"/>
+        <EditText
+            android:id="@+id/EDT_NickName"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:singleLine="true"
+            android:inputType="text"
+            android:textSize="16sp"
+            android:hint="Unknown"
+            android:imeOptions="actionDone"
+            android:visibility="gone"/>
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="100dp"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
@@ -33,7 +154,7 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="0.2dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="#989898"/>
@@ -45,7 +166,7 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="100dp"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
@@ -66,7 +187,7 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="0.2dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="#989898"/>
@@ -78,7 +199,7 @@
         android:paddingStart="8dp"
         android:paddingEnd="8dp">
         <TextView
-            android:layout_width="80dp"
+            android:layout_width="100dp"
             android:layout_height="match_parent"
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
@@ -99,7 +220,7 @@
 
     <View
         android:layout_width="match_parent"
-        android:layout_height="1dp"
+        android:layout_height="0.2dp"
         android:layout_marginStart="8dp"
         android:layout_marginEnd="8dp"
         android:background="#989898"/>

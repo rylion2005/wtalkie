@@ -19,60 +19,54 @@ import android.util.Log;
 public class Tracker {
     private static final String TAG = "Tracker";
 
-    private static Tracker mInstance;
-    private final PlayRunnable mPlayRunnable = new PlayRunnable();
-
+    private static final Tracker mInstance = new Tracker();
+    private final Tracking mTracking = new Tracking();
 
 /* ********************************************************************************************** */
-
 
     private Tracker(){
         Log.v(TAG, "new tracker");
     }
 
-    public static Tracker newInstance(){
-        if (mInstance == null){
-            mInstance = new Tracker();
-        }
+    public static Tracker getInstance(){
         return mInstance;
     }
 
     public void play(byte[] bytes, int length){
         Log.v(TAG, "play: " + length);
-        mPlayRunnable.flush(bytes, length);
-        if (mPlayRunnable.getStopSignal()) {
-            Thread t = new Thread(mPlayRunnable);
-            t.start();
+        mTracking.flush(bytes, length);
+        if (mTracking.isRunning()) {
+            (new Thread(mTracking)).start();
         }
     }
 
     public void stop(){
-        mPlayRunnable.setStopSignal();
+        Log.v(TAG, "stop: ");
+        mTracking.stopRunning();
     }
 
 
 /* ********************************************************************************************** */
 
 
-    class PlayRunnable implements Runnable {
+    class Tracking implements Runnable {
         private final static int AUDIO_STREAM = AudioManager.STREAM_MUSIC;
         private final static int AUDIO_SAMPLE_RATE = 44100; //44.1khz
         private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_OUT_STEREO;
         private final static int AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
+        private volatile boolean mRunning = false;
         private AudioTrack mTrack;
-        private volatile boolean mStopSignal;
         private int mBufferSizeInBytes;
         private int mLength;
         private byte[] mAudioBytes;
 
-
-        private void setStopSignal(){
-            mStopSignal = true;
+        private void stopRunning(){
+            mRunning = false;
         }
 
-        private boolean getStopSignal(){
-            return mStopSignal;
+        private boolean isRunning(){
+            return mRunning;
         }
 
         private void flush(byte[] bytes, int length){
@@ -82,27 +76,33 @@ public class Tracker {
 
         @Override
         public void run() {
-            Log.v(TAG, ":playing: running ...");
-            preparePlaying();
-            while (!mStopSignal) {
+            Log.v(TAG, ":Tracking: running ...");
+            mRunning = true;
+            initAudioTrack();
+            //mAudioBytes = new byte[mBufferSizeInBytes];
+            mTrack.play();
+            while (mRunning) {
                 if (mLength > 0) {
-                    mTrack.write(mAudioBytes, mLength, AudioTrack.WRITE_BLOCKING);
+                    Log.v(TAG, "write: " + mBufferSizeInBytes);
+                    mTrack.write(mAudioBytes, mBufferSizeInBytes, AudioTrack.WRITE_BLOCKING);
+                } else {
+                    Log.v(TAG, "Stream input ending");
+                    break;
                 }
             }
             endPlaying();
-            Log.v(TAG, ":playing: exit");
+            Log.v(TAG, ":Tracking: exit");
         }
 
-        private void preparePlaying(){
-            Log.v(TAG, "prepare playing");
-            mStopSignal = false;
+        private void initAudioTrack(){
+            Log.v(TAG, "init audio track");
 
-            mBufferSizeInBytes = AudioTrack.getMinBufferSize(
-                    AUDIO_SAMPLE_RATE,
-                    AUDIO_CHANNEL,
-                    AUDIO_ENCODING);
-            Log.v(TAG, "Min Buffer Size: " + mBufferSizeInBytes);
             try {
+                mBufferSizeInBytes = AudioTrack.getMinBufferSize(
+                        AUDIO_SAMPLE_RATE,
+                        AUDIO_CHANNEL,
+                        AUDIO_ENCODING);
+
                 mTrack = new AudioTrack(
                         AUDIO_STREAM,
                         AUDIO_SAMPLE_RATE,
@@ -110,7 +110,7 @@ public class Tracker {
                         AUDIO_ENCODING,
                         mBufferSizeInBytes,
                         AudioTrack.MODE_STREAM);
-                mTrack.play();
+
             } catch (IllegalArgumentException|IllegalStateException e) {
                 e.printStackTrace();
             }
@@ -118,7 +118,8 @@ public class Tracker {
 
         private void endPlaying(){
             Log.v(TAG, "end playing");
-            mStopSignal = true;
+            mTrack.stop();
+            mTrack.release();
             mBufferSizeInBytes = -1;
             mLength = -1;
             mAudioBytes = null;

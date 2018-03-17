@@ -46,15 +46,8 @@ public class Users {
     }
 
     public void update(byte[] bytes, int length){
-        if (bytes == null || length == 0){
-            return;
-        }
-
         User u = User.fromBytes(bytes, length);
-        if (u == null || u.isAllEmptyIds()){
-            return;
-        }
-        Log.v(TAG, "Incoming: " + u.toString());
+        Log.v(TAG, "Incoming: " + u.toJsonString());
         u.setState(User.STATE_ONLINE);
         u.setElapse(System.currentTimeMillis());
         u.saveOrUpdate("uuid = ? or serial = ?", u.getUuid(), u.getSerial());

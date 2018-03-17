@@ -3,27 +3,43 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="horizontal"
     android:layout_width="match_parent"
-    android:layout_height="48dp"
-    android:minHeight="48dp">
+    android:layout_height="56dp"
+    android:gravity="center_vertical"
+    android:minHeight="56dp">
 
     <ImageView
         android:id="@+id/IMV_ContactLogo"
         android:layout_width="48dp"
         android:layout_height="48dp"
-        android:paddingStart="8dp"
+        android:paddingStart="4dp"
         android:paddingEnd="4dp"
         android:src="@mipmap/default_avatar"/>
 
-    <TextView
-        android:id="@+id/TXV_IpAddress"
+    <LinearLayout
+        android:orientation="vertical"
         android:layout_width="0dp"
         android:layout_weight="1"
         android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:paddingStart="4dp"
-        android:paddingEnd="4dp"
-        android:textSize="18sp"
-        android:text="0.0.0.0"/>
+        android:gravity="center_vertical">
+        <TextView
+            android:id="@+id/TXV_Nick"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textSize="18sp"
+            android:text="nick name"/>
+        <TextView
+            android:id="@+id/TXV_IpAddress"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="4dp"
+            android:paddingEnd="4dp"
+            android:textColor="#9c9c9c"
+            android:textSize="14sp"
+            android:text="0.0.0.0"/>
+    </LinearLayout>
+
     <TextView
         android:id="@+id/TXV_Presence"
         android:layout_width="48dp"
@@ -39,7 +55,7 @@
         android:layout_height="48dp"
         android:paddingStart="8dp"
         android:paddingEnd="8dp"
-        android:visibility="gone"
         android:focusable="false"
-        android:clickable="false"/>
+        android:clickable="false"
+        android:visibility="gone"/>
 </LinearLayout>

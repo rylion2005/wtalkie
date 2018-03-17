@@ -7,12 +7,15 @@ import android.app.FragmentTransaction;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.graphics.drawable.Drawable;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
+import android.support.v7.app.ActionBar;
 import android.util.Log;
 import android.view.View;
+import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Users;
@@ -29,6 +32,10 @@ public class MainActivity extends BaseActivity {
     private ContactsFragment mContactsFragment;
     private ProfileFragment mProfileFragment;
     private Fragment mCurrentFragment;
+    private ActionBar mActionBar;
+    private TextView mTxvSessions;
+    private TextView mTxvContacts;
+    private TextView mTxvProfile;
 
     private MyService mService;
 
@@ -43,6 +50,10 @@ public class MainActivity extends BaseActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        mActionBar = getSupportActionBar();
+        mTxvSessions = findViewById(R.id.TXV_Sessions);
+        mTxvContacts = findViewById(R.id.TXV_Contacts);
+        mTxvProfile = findViewById(R.id.TXV_Profile);
         bindService(new Intent(this, MyService.class),
                 mServiceConnection,
                 BIND_AUTO_CREATE);
@@ -56,14 +67,26 @@ public class MainActivity extends BaseActivity {
     }
 
     public void refreshSessions(View view){
+        mActionBar.setTitle("Sessions");
+        mTxvSessions.setTextColor(0xffd33f3f);
+        mTxvContacts.setTextColor(0xff7d8790);
+        mTxvProfile.setTextColor(0xff7d8790);
         //replaceFragment(mSessionsFragment);
     }
 
     public void refreshContacts(View view){
+        mActionBar.setTitle("Contacts");
+        mTxvSessions.setTextColor(0xff7d8790);
+        mTxvContacts.setTextColor(0xffd33f3f);
+        mTxvProfile.setTextColor(0xff7d8790);
         replaceFragment(mContactsFragment);
     }
 
     public void refreshProfile(View view){
+        mActionBar.setTitle("Profile");
+        mTxvSessions.setTextColor(0xff7d8790);
+        mTxvContacts.setTextColor(0xff7d8790);
+        mTxvProfile.setTextColor(0xffd33f3f);
         replaceFragment(mProfileFragment);
     }
 

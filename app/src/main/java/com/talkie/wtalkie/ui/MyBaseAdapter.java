@@ -19,12 +19,9 @@ public class MyBaseAdapter extends BaseAdapter {
     private Context mContext;
     private int mLayoutResId;
 
+/* ********************************************************************************************** */
 
-    public static MyBaseAdapter newInstance(Context context, int resId){
-        return new MyBaseAdapter(context, resId);
-    }
-
-    private MyBaseAdapter(Context context, int resId) {
+    public MyBaseAdapter(Context context, int resId) {
         mContext = context;
         mLayoutResId = resId;
     }

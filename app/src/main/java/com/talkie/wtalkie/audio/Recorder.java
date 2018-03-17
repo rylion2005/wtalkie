@@ -14,81 +14,83 @@ import android.util.Log;
 */
 public class Recorder{
     private static final String TAG = "Recorder";
-    private static Recorder mInstance;
 
-    private final RecordRunnable mRecordRunnable = new RecordRunnable();
-    private final Thread mRecordThread = new Thread(mRecordRunnable);
-    private Callback mCallback;
+    private static final Recorder mInstance = new Recorder();
 
+    private final Recording mRecorder = new Recording();
+    private AudioCallback mCallback;
 
 /* ********************************************************************************************** */
-
 
     private Recorder(){
         Log.v(TAG, "new recorder");
     }
 
-    // Single instance
-    public static Recorder newInstance(){
-        if (mInstance == null){
-            mInstance = new Recorder();
-        }
+    public static Recorder getInstance(){
         return mInstance;
     }
 
-    public void register(Callback cb){
+    public void register(AudioCallback cb){
         mCallback = cb;
     }
 
     public void start(){
-        if (!mRecordThread.isAlive()) {
-            mRecordThread.start();
+        Log.v(TAG, "start: ");
+        if (!mRecorder.isRunning()) {
+            (new Thread(mRecorder)).start();
         }
     }
 
     public void stop(){
-        mRecordRunnable.setStopSignal(true);
+        Log.v(TAG, "stop: ");
+        mRecorder.stopRunning();
+        if (mCallback != null) {
+            mCallback.onStreamEnding();
+        }
     }
-
 
 /* ********************************************************************************************** */
 
-
-    class RecordRunnable implements Runnable {
-
+    class Recording implements Runnable {
         private final static int AUDIO_INPUT = MediaRecorder.AudioSource.MIC;
         private final static int AUDIO_SAMPLE_RATE = 44100; //44.1khz
         private final static int AUDIO_CHANNEL = AudioFormat.CHANNEL_IN_STEREO;
         private final static int AUDIO_ENCODING = AudioFormat.ENCODING_PCM_16BIT;
 
+        private volatile boolean mRunning;
         private AudioRecord mRecord;
-
-        private volatile boolean mStopSignal;
         private int mBufferSizeInBytes;
 
-        private RecordRunnable(){ }
+        private Recording(){ }
 
+        private boolean isRunning(){
+            return mRunning;
+        }
 
-        private void setStopSignal(boolean stop){
-            mStopSignal = stop;
+        private void stopRunning(){
+            mRunning = false;
         }
 
         @Override
         public void run() {
             Log.v(TAG, ":recording: running ......");
-            prepareRecording();
-            while (!mStopSignal) {
-                byte[] buf = new byte[mBufferSizeInBytes];
-                int count = mRecord.read(buf, 0, mBufferSizeInBytes);
-                dispatch(buf, count);
+            mRunning = true;
+            initAudioRecord();
+            byte[] buffer = new byte[mBufferSizeInBytes];
+            mRecord.startRecording();
+            while (mRunning) {
+                int count = mRecord.read(buffer, 0, mBufferSizeInBytes);
+                if (mCallback != null) {
+                    mCallback.onAudioStreamOutput(buffer, count);
+                }
             }
             endRecording();
+            mRunning = false;
             Log.v(TAG, ":recording: exit ...");
         }
 
-        private void prepareRecording(){
-            Log.v(TAG, "prepare recording");
-            mStopSignal = false;
+        private void initAudioRecord(){
+            Log.v(TAG, "init audio record");
 
             try {
                 mBufferSizeInBytes = AudioRecord.getMinBufferSize(
@@ -102,8 +104,6 @@ public class Recorder{
                         AUDIO_CHANNEL,
                         AUDIO_ENCODING,
                         mBufferSizeInBytes);
-
-                mRecord.startRecording();
             } catch (IllegalStateException|NullPointerException e) {
                 Log.v(TAG, "prepare exception");
                 e.printStackTrace();
@@ -112,27 +112,15 @@ public class Recorder{
 
         private void endRecording(){
             Log.v(TAG, "end recording");
-
             mRecord.stop();
             mRecord.release();
-
-            mStopSignal = true;
-            mBufferSizeInBytes = -1;
-            mRecord = null;
-            mStopSignal = true;
-        }
-
-        private void dispatch(byte[] bytes, int length){
-            Log.v(TAG, "dispatch: " + length);
-            mCallback.onAudioStream(bytes, length);
         }
     }
 
-
 /* ********************************************************************************************** */
 
-
-    public interface Callback {
-        void onAudioStream(byte[] bytes, int length);
+    public interface AudioCallback {
+        void onAudioStreamOutput(byte[] bytes, int length);
+        void onStreamEnding();
     }
 }

@@ -157,6 +157,10 @@ public class Identity {
         return Settings.Secure.getString(mCr, Settings.Secure.ANDROID_ID);
     }
 
+    public String getModel(){
+        return Build.MODEL;
+    }
+
     public String getWlanMacAddress () {
         WifiInfo info = mWm.getConnectionInfo();
         String wifiMac = info.getMacAddress();
