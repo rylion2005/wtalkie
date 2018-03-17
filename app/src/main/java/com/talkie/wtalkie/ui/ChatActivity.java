@@ -5,13 +5,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.os.MessageQueue;
+import android.support.v7.app.ActionBar;
 import android.text.Editable;
-import android.text.Layout;
 import android.text.TextWatcher;
-import android.util.Base64;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -23,7 +20,8 @@ import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.audio.Recorder;
-import com.talkie.wtalkie.services.MyService;
+import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.sessions.Session;
 import com.talkie.wtalkie.sockets.Messenger;
 
 import java.io.UnsupportedEncodingException;
@@ -61,6 +59,11 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private final List<Object> mMessageQueue = new ArrayList<>();
     private final UiHandler mHandler = new UiHandler();
 
+    // Session information
+    private Session mActiveSession;
+    private int mUserCount = 0;
+    private int[] mUserIds;
+
 
 /* ********************************************************************************************** */
 
@@ -69,10 +72,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-
-        Intent intent = getIntent();
-        String[] hosts = intent.getStringArrayExtra("HostList");
-
+        initIntent();
         initViews();
         init();
     }
@@ -152,7 +152,31 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         mMessenger.register(ml);
     }
 
+    private void initIntent(){
+        Intent intent = getIntent();
+        long sessionId = intent.getIntExtra("SessionId", 0);
+        if (sessionId == 0) {
+            mUserCount = intent.getIntExtra("UserCount", 0);
+            mUserIds = intent.getIntArrayExtra("UserIds");
+            Log.v(TAG, "count: " + mUserCount);
+        } else {
+            // find session from database
+        }
+    }
+
     private void initViews() {
+
+        ActionBar ab = getSupportActionBar();
+        if (mUserCount > 1){
+            ab.setTitle(Users.findAt(mUserIds[0]).getNick()
+                    + "," + Users.findAt(mUserIds[1]).getNick()
+                    + " ...");
+        } else if (mUserCount == 1){
+            ab.setTitle(Users.findAt(mUserIds[0]).getNick());
+        } else {
+            // nothing
+        }
+
         mIMVType = findViewById(R.id.IMV_MessageMode);
         mEDTText = findViewById(R.id.EDT_Input);
         mTXVTalk = findViewById(R.id.TXV_Talk);
@@ -227,6 +251,14 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
 
 /* ********************************************************************************************** */
+
+    private Session buildSession(int userCount, int[] userIds){
+        Session ss = new Session();
+        return ss;
+    }
+
+
+/* ****************************************if****************************************************** */
 
     class UiHandler extends Handler{
         @Override

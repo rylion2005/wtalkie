@@ -33,6 +33,9 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     private boolean mChecked = false;
     private MyBaseAdapter mAdapter;
 
+    private int mUserCount = 0;
+    private int[] mUserIds;
+
 
 /* ********************************************************************************************** */
 
@@ -93,11 +96,12 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         // state machine
         if (mState == SELECT_STATE_IDLE){
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-            String[] hosts = new String[5];
-            String ip = ((TextView)view.findViewById(R.id.TXV_IpAddress)).getText().toString();
-            Log.v(TAG, "ip: " + ip);
-            hosts[0] = ip;
-            intent.putExtra("HostList", hosts);
+            mUserCount = 1;
+            mUserIds = new int[mUserCount];
+            mUserIds[0] = position + 1;
+            intent.putExtra("SessionId", 0);
+            intent.putExtra("UserCount", 1);
+            intent.putExtra("UserIds", mUserIds);
             startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK
             CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);
@@ -118,6 +122,14 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         if (item.getItemId() == R.id.SelectMore) {
 
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
+            mUserCount = Users.getUsersCount();
+            mUserIds = new int[mUserCount];
+            for (int i = 0; i < mUserCount; i++){
+                mUserIds[i] = i + 1;
+            }
+            intent.putExtra("SessionId", 0);
+            intent.putExtra("UserCount", mUserCount);
+            intent.putExtra("UserIds", mUserIds);
             startActivity(intent);
 
             /*
@@ -171,9 +183,6 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
 
     private void initViews(View rootView){
         setHasOptionsMenu(true);
-        //ActionBar ab = getActivity().getActionBar();
-        //ab.setTitle("Contacts");
-
         mAdapter = new MyBaseAdapter(this.getActivity(), R.layout.contact_list);
         ListView lsv = rootView.findViewById(R.id.LSV_Contacts);
         lsv.setAdapter(mAdapter);
@@ -182,6 +191,10 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     }
 
     private void init(){
+
+    }
+
+    private void fillIntent(Intent intent){
 
     }
 

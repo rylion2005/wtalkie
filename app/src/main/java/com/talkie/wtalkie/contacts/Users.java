@@ -33,10 +33,17 @@ public class Users {
         return User.findAll(User.class);
     }
 
+    public static int getUsersCount(){
+        return User.count(User.class);
+    }
+
+    public static User findAt(int id){
+        return User.find(User.class, id);
+    }
+
 /* ********************************************************************************************** */
 
     public Users(){
-        SQLiteDatabase usersdb = LitePal.getDatabase();
     }
 
     public void register(UserChangeCallback cb){

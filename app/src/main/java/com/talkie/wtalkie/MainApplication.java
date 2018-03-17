@@ -4,6 +4,7 @@ package com.talkie.wtalkie;
 import android.app.Application;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 
 import org.litepal.LitePal;
@@ -52,6 +53,7 @@ public class MainApplication extends Application  {
 
         // LitePal initialize ASAP
         LitePal.initialize(this);
+        LitePal.getDatabase();
 
         //startService(new Intent(getApplicationContext(), MyService.class));
     }

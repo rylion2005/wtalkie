@@ -1,18 +1,10 @@
 package com.talkie.wtalkie.contacts;
 
 
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+
 import android.text.TextUtils;
-
 import com.google.gson.Gson;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
 
 
 /*
