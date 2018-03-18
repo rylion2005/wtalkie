@@ -22,52 +22,55 @@ import java.io.ByteArrayOutputStream;
 */
 public class Myself extends User {
     private static final String TAG = "Myself";
-    private static final String MYSELF = "myself";
+    private static final String MYSELF_PREF = "myself";
 
     private Myself(){ }
 
     public static SharedPreferences makeMyself(Context c){
-        Log.v(TAG, "makeMyself: ");
-        SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
-        String uuid = sp.getString("uuid", null);
-        if (null == uuid){
+        SharedPreferences sp = c.getSharedPreferences(MYSELF_PREF, Context.MODE_PRIVATE);
+        String uid = sp.getString("uid", null);
+        if (null == uid){
             Log.v(TAG, "generate myself");
             Identity id = Identity.getInstance(c);
-            uuid = id.genShortUuid();
+            uid = id.genUid();
             SharedPreferences.Editor editor = sp.edit();
-            editor.putString("uuid", uuid);
             /*
             Bitmap bm = BitmapFactory.decodeResource(c.getResources(), R.mipmap.default_avatar);
             ByteArrayOutputStream bo = new ByteArrayOutputStream();
             bm.compress(Bitmap.CompressFormat.PNG, 100, bo);
             editor.putString("avatar", new String(bo.toByteArray()));
             */
-            editor.putString("user", "unknown");
+            editor.putString("uid", uid);
+            editor.putString("user", "anonymous");
             editor.putString("nick", id.getModel());
-            editor.putString("serial", id.getSerial());
             editor.putString("address", id.getLocalAddress());
+            editor.putString("netaddr", "f.f.f.f");
+            editor.putLong("elapse", 0);
+            editor.putInt("state", 0xA);
             editor.commit();
         }
         return sp;
     }
 
-    public static User buildMyself(Context c){
-        Log.v(TAG, "buildMyself: ");
+    public static User fromMyself(Context c){
         User user = new User();
         SharedPreferences sp = makeMyself(c);
         //user.setAvatar(sp.getString("avatar", null).getBytes());
+        user.setUid(sp.getString("uid", null));
         user.setUser(sp.getString("user", null));
         user.setNick(sp.getString("nick", null));
-        user.setUuid(sp.getString("uuid", null));
-        user.setSerial(sp.getString("serial", null));
         user.setAddress(sp.getString("address", null));
+        user.setNetaddr(sp.getString("netaddr", null));
+        user.setElapse(sp.getLong("elapse", 0));
+        user.setState(sp.getInt("state", 0));
+        Log.v(TAG, "getMyself: " + user.toJsonString());
         return user;
     }
 
     public static void updateAddress(Context c){
         Log.v(TAG, "updateIds: ");
         Identity id = Identity.getInstance(c);
-        SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
+        SharedPreferences sp = c.getSharedPreferences(MYSELF_PREF, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("address", id.getLocalAddress());
         editor.apply();
@@ -75,7 +78,7 @@ public class Myself extends User {
 
     public static void updateUserId(Context c, String s){
         Log.v(TAG, "updateUserId: ");
-        SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
+        SharedPreferences sp = c.getSharedPreferences(MYSELF_PREF, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("user", s);
         editor.apply();
@@ -83,7 +86,7 @@ public class Myself extends User {
 
     public static void updateNickName(Context c, String s){
         Log.v(TAG, "updateNickName: ");
-        SharedPreferences sp = c.getSharedPreferences(MYSELF, Context.MODE_PRIVATE);
+        SharedPreferences sp = c.getSharedPreferences(MYSELF_PREF, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sp.edit();
         editor.putString("nick", s);
         editor.apply();

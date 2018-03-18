@@ -137,22 +137,23 @@ public class ProfileFragment extends Fragment
         if (mView == null){
             return;
         }
-
         ImageView IMVAvatar = mView.findViewById(R.id.IMV_Avatar);
+        TextView TXVUid = mView.findViewById(R.id.TXV_Uid);
+
         TextView TXVUser = mView.findViewById(R.id.TXV_UserId);
         EditText EDTUser = mView.findViewById(R.id.EDT_UserId);
         TextView TXVNick = mView.findViewById(R.id.TXV_NickName);
         EditText EDTNick = mView.findViewById(R.id.EDT_NickName);
-        TextView TXVUuid = mView.findViewById(R.id.TXV_Uuid);
-        TextView TXVSerial = mView.findViewById(R.id.TXV_Serial);
-        TextView TXVAddress = mView.findViewById(R.id.TXV_Address);
 
-        User me = Myself.buildMyself(getActivity().getApplicationContext());
+        TextView TXVAddress = mView.findViewById(R.id.TXV_Address);
+        TextView TXVInetAddr = mView.findViewById(R.id.TXV_InetAddress);
+
+        User me = Myself.fromMyself(getActivity().getApplicationContext());
+        TXVUid.setText(me.getUid());
         TXVUser.setText(me.getUser());
         TXVNick.setText(me.getNick());
-        TXVUuid.setText(me.getUuid());
-        TXVSerial.setText(me.getSerial());
         TXVAddress.setText(me.getAddress());
+        TXVInetAddr.setText(me.getNetaddr());
 
         IMVAvatar.setOnClickListener(this);
         TXVNick.setOnClickListener(this);

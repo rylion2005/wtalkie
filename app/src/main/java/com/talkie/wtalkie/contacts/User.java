@@ -25,9 +25,9 @@ public class User extends DataSupport {
     //private byte[] avatar;
     private String user;
     private String nick;
-    private String uuid;
-    private String serial;
+    private String uid;
     private String address;
+    private String netaddr;
     private long elapse;
     private int state;
 
@@ -70,20 +70,12 @@ public class User extends DataSupport {
         this.nick = nick;
     }
 
-    public String getUuid() {
-        return uuid;
+    public String getUid() {
+        return uid;
     }
 
-    public void setUuid(String uuid) {
-        this.uuid = uuid;
-    }
-
-    public String getSerial() {
-        return serial;
-    }
-
-    public void setSerial(String serial) {
-        this.serial = serial;
+    public void setUid(String uuid) {
+        this.uid = uuid;
     }
 
     public String getAddress() {
@@ -92,6 +84,14 @@ public class User extends DataSupport {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getNetaddr() {
+        return netaddr;
+    }
+
+    public void setNetaddr(String netaddr) {
+        this.netaddr = netaddr;
     }
 
     public long getElapse() {
@@ -117,15 +117,4 @@ public class User extends DataSupport {
         Gson g = new Gson();
         return g.toJson(this, User.class);
     }
-
-    public boolean isAllEmptyIds(){
-        boolean empty = false;
-        if (TextUtils.isEmpty(uuid) || uuid.equals("null")
-                && (TextUtils.isEmpty(serial) || serial.equals("null"))) {
-            empty = true;
-        }
-        return empty;
-    }
-
-
 }

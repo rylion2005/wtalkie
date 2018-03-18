@@ -11,20 +11,26 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.User;
+import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.sessions.Session;
+import com.talkie.wtalkie.sessions.SessionManager;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class SessionsFragment extends Fragment implements AdapterView.OnItemClickListener {
     private static final String TAG = "SessionsFragment";
 
-    private OnListFragmentInteractionListener mListener;
     private MyBaseAdapter mAdapter;
+    private SessionManager mSessionManager;
 
 
 /* ********************************************************************************************** */
 
 
-    public SessionsFragment() {
-    }
+    public SessionsFragment() { }
 
 
     public static SessionsFragment newInstance() {
@@ -34,6 +40,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mSessionManager = SessionManager.getInstance();
     }
 
     @Override
@@ -62,7 +69,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onDetach() {
         super.onDetach();
-        mListener = null;
+        //mListener = null;
     }
 
     @Override
@@ -72,27 +79,28 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
 
 /* ********************************************************************************************** */
 
+
     private void initViews(View rootView){
-        //initSessions();
-        initListViews(rootView);
-
-    }
-
-    private void initListViews(View rootView){
         mAdapter = new MyBaseAdapter(this.getActivity(), R.layout.session_list);
-
         ListView lsv = rootView.findViewById(R.id.LSV_Sessions);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
-        reloadListView();
+        refreshViews();
     }
 
-    private void reloadListView(){
+
+    private void refreshViews(){
         Log.v(TAG, "reloadListView()");
 
         mAdapter.clearItemList();
-
-        MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
+        for (Session s : mSessionManager.getSessions()){
+            MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
+            vh.setTextView(R.id.TXV_Originator, s.getOriginator().getNick());
+            vh.setTextView(R.id.TXV_LastMessage, "Test message ...");
+            Date dateTime = new Date(s.getOriginateTime());
+            SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss");
+            vh.setTextView(R.id.TXV_LastMessageTime, format.format(dateTime));
+        }
 
         mAdapter.notifyDataSetChanged();
     }

@@ -18,6 +18,7 @@ import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.sessions.SessionManager;
 import com.talkie.wtalkie.sockets.Connector;
 import com.talkie.wtalkie.sockets.Streamer;
 
@@ -38,7 +39,7 @@ public class MyService extends Service {
 
     private final Connector mConnector = new Connector();
     private final Streamer mStreamer = Streamer.getInstance();
-    private final Users mUsers = new Users();
+    private final Users mUsers = Users.getInstance();
     private final Recorder mRecorder = Recorder.getInstance();
     private final Tracker mTracker = Tracker.getInstance();
     private final List<ConnectivityCallback> mCallbacks = new ArrayList<>();
@@ -124,7 +125,9 @@ public class MyService extends Service {
         mRecorder.register(scb);
         mStreamer.register(scb);
 
-        Myself.buildMyself(this.getApplicationContext());
+        SessionManager.getInstance();
+
+        Myself.makeMyself(this.getApplicationContext());
         registerActions();
         (new Timer()).schedule((new BeatHearting()), 10, TIMER_INTERVAL);
 
@@ -152,7 +155,7 @@ public class MyService extends Service {
     }
 
     private void heartBeat(){
-        User me = Myself.buildMyself(getApplicationContext());
+        User me = Myself.fromMyself(getApplicationContext());
         Log.v(TAG, "MYSELF: " + me.toJsonString());
         try {
             mConnector.broadcast(me.toJsonString().getBytes("UTF-8"),

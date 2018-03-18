@@ -8,6 +8,7 @@ import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.provider.Settings;
 import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import java.net.Inet6Address;
 import java.net.InetAddress;
@@ -50,11 +51,25 @@ public class Identity {
         return mInstance;
     }
 
-    public String genShortUuid(){
+    public String genUid(){
+        String id = null;
+        id = getDeviceID();
+        if (id == null) {
+            id = getImei();
+            if (id == null) {
+                id = getMeid();
+                if (id == null) {
+                    id = getSerial();
+                }
+            }
+        }
+        return id;
+    }
+
+    public String genUuid(){
         String id = UUID.randomUUID().toString();
-        String shortId = id.substring(0, id.indexOf('-')) +
-                id.substring(id.lastIndexOf('-')+1, id.length());
-        return shortId;
+        Log.v(TAG, "Uuid: " + id);
+        return id;
     }
 
     public String getLocalAddress() {
@@ -95,6 +110,8 @@ public class Identity {
                 //
             }
         }
+
+        Log.v(TAG, "imei: " + str);
         return str;
     }
 
@@ -107,6 +124,7 @@ public class Identity {
                 //
             }
         }
+        Log.v(TAG, "meid: " + str);
         return str;
     }
 
@@ -119,6 +137,7 @@ public class Identity {
                 //
             }
         //}
+        Log.v(TAG, "SubscriberId: " + str);
         return str;
     }
 
@@ -131,6 +150,17 @@ public class Identity {
                 //
             }
         //}
+        Log.v(TAG, "SimSerialNumber: " + str);
+        return str;
+    }
+
+    public String getDeviceID(){
+        String str = null;
+        try {
+            str = mTm.getDeviceId();
+        } catch (SecurityException e) {
+            //
+        }
         return str;
     }
 
@@ -141,7 +171,7 @@ public class Identity {
             try {
                 str = android.os.Build.getSerial();
             } catch (SecurityException e) {
-
+                //
             }
         } else {
             try {
@@ -150,6 +180,7 @@ public class Identity {
                 //
             }
         }
+        Log.v(TAG, "serial: " + str);
         return str;
     }
 

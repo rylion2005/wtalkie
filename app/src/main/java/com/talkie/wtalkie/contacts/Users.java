@@ -24,10 +24,20 @@ import java.util.List;
 */
 public class Users {
     private static final String TAG = "Users";
-    private static final long OFFLINE_MS = 60000;
+    private static Users mInstance;
+    private static final long OFFLINE_MS = 20000;
     private final List<UserChangeCallback> mCallbacks = new ArrayList<>();
 
 /* ********************************************************************************************** */
+
+    private Users(){}
+
+    public static Users getInstance(){
+        if (mInstance == null){
+            mInstance = new Users();
+        }
+        return mInstance;
+    }
 
     public static List<User> findAll(){
         return User.findAll(User.class);
@@ -37,14 +47,22 @@ public class Users {
         return User.count(User.class);
     }
 
-    public static User findAt(int id){
-        return User.find(User.class, id);
+    public static User findAt(int index){
+        return User.find(User.class, index);
+    }
+
+    public static User findByUid(String uid){
+        User user = null;
+        for (User u : User.findAll(User.class)){
+            if (u.getUid().equals(uid)){
+                user = u;
+                break;
+            }
+        }
+        return user;
     }
 
 /* ********************************************************************************************** */
-
-    public Users(){
-    }
 
     public void register(UserChangeCallback cb){
         if (cb != null){
@@ -57,7 +75,7 @@ public class Users {
         Log.v(TAG, "Incoming: " + u.toJsonString());
         u.setState(User.STATE_ONLINE);
         u.setElapse(System.currentTimeMillis());
-        u.saveOrUpdate("uuid = ? or serial = ?", u.getUuid(), u.getSerial());
+        u.saveOrUpdate("uid = ?", u.getUid());
         notifyChange();
     }
 

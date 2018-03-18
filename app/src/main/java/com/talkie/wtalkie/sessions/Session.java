@@ -1,8 +1,9 @@
 package com.talkie.wtalkie.sessions;
 
+import com.google.gson.Gson;
+import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 
-import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -15,33 +16,67 @@ import java.util.List;
 **     
 */
 public class Session {
+    // type
     public static final int SESSION_TYPE_P2P = 0xD1;
     public static final int SESSION_TYPE_GROUP = 0xD2;
 
-    public static final int SESSION_INACTIVE = 0xDA;
-    public static final int SESSION_ACTIVE = 0xDB;
+    // state
+    public static final int SESSION_NOT_INITIALIZED = 0xDA;
+    public static final int SESSION_INACTIVE = 0xDB;
+    public static final int SESSION_ACTIVE = 0xDC;
 
+    // data members
+    private long originateTime; // as unique id
     private String name;
-    private long sessionId;            // sent time of first message
-    private long originateTime;        // sent time of first message
     private int type;
-    private int sessionState;
-    private User originator;           // originator
-    private final List<User> participants = new ArrayList<>();   // receivers
-    private final List<Message> messages = new ArrayList<>();    // messages
+    private int state;
+    private User originator;
+    private List<User> participants;
+    private List<Message> messages;
 
-    public Session() {
+
+/* ********************************************************************************************** */
+
+    public Session(){
         originateTime = System.currentTimeMillis();
-        sessionId = originateTime;
-        sessionState = SESSION_ACTIVE;
+        state = SESSION_NOT_INITIALIZED;
     }
 
-    public Session(int type, User originator) {
+    public Session(User originator, List<User> participants) {
         originateTime = System.currentTimeMillis();
-        sessionId = originateTime;
-        sessionState = SESSION_ACTIVE;
-        this.type = type;
+        state = SESSION_NOT_INITIALIZED;
         this.originator = originator;
+        this.participants = participants;
+    }
+
+    public static Session decode(String jsonStr){
+        Gson gson = new Gson();
+        return gson.fromJson(jsonStr, Session.class);
+    }
+
+
+/* ********************************************************************************************** */
+
+    public boolean isSame(User originator, List<User> participants){
+        boolean same = true;
+        if (originator.getUid().equals(this.originator.getUid())){
+            for (User newUser : participants){
+                for (User oldUser : this.participants){
+                    if (!newUser.getUid().equals(oldUser.getUid())){
+                       return false;
+                    }
+                }
+            }
+        } else {
+            same = false;
+        }
+        return same;
+    }
+
+    public String encode(){
+        Gson gson = new Gson();
+        String json = gson.toJson(this, Session.class);
+        return json;
     }
 
     public String getName() {
@@ -52,13 +87,6 @@ public class Session {
         this.name = name;
     }
 
-    public long getSessionId() {
-        return sessionId;
-    }
-
-    public void setSessionId(long sessionId) {
-        this.sessionId = sessionId;
-    }
 
     public long getOriginateTime() {
         return originateTime;
@@ -76,14 +104,6 @@ public class Session {
         this.type = type;
     }
 
-    public int getSessionState() {
-        return sessionState;
-    }
-
-    public void setSessionState(int sessionState) {
-        this.sessionState = sessionState;
-    }
-
     public User getOriginator() {
         return originator;
     }
@@ -92,19 +112,19 @@ public class Session {
         this.originator = originator;
     }
 
+    public int getState() {
+        return state;
+    }
+
+    public void setState(int state) {
+        this.state = state;
+    }
+
     public List<User> getParticipants() {
         return participants;
     }
 
-    public void addParticipants(List<User> participants) {
-        this.participants.addAll(participants);
-    }
-
     public List<Message> getMessages() {
         return messages;
-    }
-
-    public void addMessages(List<Message> messages) {
-        this.messages.addAll(messages);
     }
 }

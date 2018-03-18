@@ -71,7 +71,7 @@ public class MainActivity extends BaseActivity {
         mTxvSessions.setTextColor(0xffd33f3f);
         mTxvContacts.setTextColor(0xff7d8790);
         mTxvProfile.setTextColor(0xff7d8790);
-        //replaceFragment(mSessionsFragment);
+        replaceFragment(mSessionsFragment);
     }
 
     public void refreshContacts(View view){

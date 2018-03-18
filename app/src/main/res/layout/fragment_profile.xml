@@ -46,7 +46,40 @@
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
             android:textSize="18sp"
-            android:text="My Id"/>
+            android:text="ID"/>
+        <TextView
+            android:id="@+id/TXV_Uid"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:textSize="16sp"
+            android:text="88888888"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="User ID"/>
         <TextView
             android:id="@+id/TXV_UserId"
             android:layout_width="0dp"
@@ -56,7 +89,7 @@
             android:textAllCaps="false"
             android:textColor="#9c9c9c"
             android:textSize="16sp"
-            android:text="Unknown"/>
+            android:text="Anonymous"/>
         <EditText
             android:id="@+id/EDT_UserId"
             android:layout_width="0dp"
@@ -138,72 +171,6 @@
             android:gravity="start|center_vertical"
             android:textAllCaps="false"
             android:textSize="18sp"
-            android:text="UUID"/>
-        <TextView
-            android:id="@+id/TXV_Uuid"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|end"
-            android:textAllCaps="false"
-            android:textColor="#9c9c9c"
-            android:textSize="16sp"
-            android:text="88888888"/>
-
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.2dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="#989898"/>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:gravity="start|center_vertical"
-            android:textAllCaps="false"
-            android:textSize="18sp"
-            android:text="SerialNo"/>
-        <TextView
-            android:id="@+id/TXV_Serial"
-            android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|end"
-            android:textAllCaps="false"
-            android:textColor="#9c9c9c"
-            android:textSize="16sp"
-            android:text="xxxxxxxxxx"/>
-
-    </LinearLayout>
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="0.2dp"
-        android:layout_marginStart="8dp"
-        android:layout_marginEnd="8dp"
-        android:background="#989898"/>
-
-    <LinearLayout
-        android:orientation="horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="48dp"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp">
-        <TextView
-            android:layout_width="100dp"
-            android:layout_height="match_parent"
-            android:gravity="start|center_vertical"
-            android:textAllCaps="false"
-            android:textSize="18sp"
             android:text="Address"/>
 
         <TextView
@@ -215,6 +182,39 @@
             android:textColor="#9c9c9c"
             android:textSize="16sp"
             android:text="0.0.0.0"/>
+
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="0.2dp"
+        android:layout_marginStart="8dp"
+        android:layout_marginEnd="8dp"
+        android:background="#989898"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp">
+        <TextView
+            android:layout_width="100dp"
+            android:layout_height="match_parent"
+            android:gravity="start|center_vertical"
+            android:textAllCaps="false"
+            android:textSize="18sp"
+            android:text="Internet Ip"/>
+        <TextView
+            android:id="@+id/TXV_InetAddress"
+            android:layout_width="0dp"
+            android:layout_weight="1"
+            android:layout_height="match_parent"
+            android:gravity="center_vertical|end"
+            android:textAllCaps="false"
+            android:textColor="#9c9c9c"
+            android:textSize="16sp"
+            android:text="xxxxxxxxxx"/>
 
     </LinearLayout>
 

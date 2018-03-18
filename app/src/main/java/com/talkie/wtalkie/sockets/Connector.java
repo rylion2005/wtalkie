@@ -43,7 +43,7 @@ public class Connector {
 
     private static final String MULTICAST_ADDRESS = "224.0.0.111";
     private static final int SOCKET_PORT = 52525;
-    private static final int SOCKET_BUFFER_BYTES = 1024;
+    private static final int SOCKET_BUFFER_BYTES = 512;
 
     private final Listener mListener = new Listener();
     private final Sender mSender = new Sender();

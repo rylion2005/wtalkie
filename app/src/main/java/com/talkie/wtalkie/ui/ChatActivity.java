@@ -20,8 +20,11 @@ import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.audio.Recorder;
+import com.talkie.wtalkie.contacts.Myself;
+import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.sessions.Session;
+import com.talkie.wtalkie.sessions.SessionManager;
 import com.talkie.wtalkie.sockets.Messenger;
 
 import java.io.UnsupportedEncodingException;
@@ -61,8 +64,8 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
     // Session information
     private Session mActiveSession;
-    private int mUserCount = 0;
     private int[] mUserIds;
+    private String mTitle;
 
 
 /* ********************************************************************************************** */
@@ -72,9 +75,8 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
-        initIntent();
-        initViews();
         init();
+        initViews();
     }
 
     @Override
@@ -150,32 +152,47 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private void init() {
         MessageListener ml = new MessageListener();
         mMessenger.register(ml);
+        mActiveSession = initSession();
     }
 
-    private void initIntent(){
+    private Session initSession(){
         Intent intent = getIntent();
-        long sessionId = intent.getIntExtra("SessionId", 0);
-        if (sessionId == 0) {
-            mUserCount = intent.getIntExtra("UserCount", 0);
-            mUserIds = intent.getIntArrayExtra("UserIds");
-            Log.v(TAG, "count: " + mUserCount);
-        } else {
-            // find session from database
+        mUserIds = intent.getIntArrayExtra("UserIds");
+        StringBuilder title = new StringBuilder(); // string for title bar
+
+        User me = Myself.fromMyself(this);
+        List<User> receivers = new ArrayList<>();
+        for (int i = 0; i < mUserIds.length; i++){
+            User u = Users.findAt(mUserIds[i]);
+            if (i < 2) {
+                title.append(u.getNick());
+                if (i > 0) {
+                    title.append(",");
+                }
+            }
+            receivers.add(u);
         }
+
+        if (mUserIds.length > 1){
+            title.append("...");
+        }
+
+        Session ss = SessionManager.getInstance().getSession(me, receivers);
+        if (ss.getState() == Session.SESSION_NOT_INITIALIZED){
+            ss.setName(title.toString());
+            ss.setType(Session.SESSION_TYPE_P2P);
+            ss.setState(Session.SESSION_ACTIVE);
+            SessionManager.getInstance().add(ss);
+        } else {
+            ss.setState(Session.SESSION_ACTIVE);
+        }
+        return ss;
     }
 
     private void initViews() {
 
         ActionBar ab = getSupportActionBar();
-        if (mUserCount > 1){
-            ab.setTitle(Users.findAt(mUserIds[0]).getNick()
-                    + "," + Users.findAt(mUserIds[1]).getNick()
-                    + " ...");
-        } else if (mUserCount == 1){
-            ab.setTitle(Users.findAt(mUserIds[0]).getNick());
-        } else {
-            // nothing
-        }
+        ab.setTitle(mActiveSession.getName());
 
         mIMVType = findViewById(R.id.IMV_MessageMode);
         mEDTText = findViewById(R.id.EDT_Input);
@@ -188,10 +205,8 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         mEDTText.addTextChangedListener(this);
         mTXVTalk.setOnClickListener(this);
         mIMVMore.setOnClickListener(this);
-        mBTNAction.setOnClickListener(this);initListView();
-    }
+        mBTNAction.setOnClickListener(this);
 
-    private void initListView() {
         mAdapter = new MyBaseAdapter(this, R.layout.chat_list);
         ListView lsv = findViewById(R.id.LSV_Messages);
         lsv.setAdapter(mAdapter);
@@ -218,7 +233,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
             vh.setView(R.id.RLL_OutgoingMessage, View.VISIBLE);
         }
         mAdapter.notifyDataSetChanged();
-
     }
 
     private void switchAction(boolean isSend) {
@@ -252,10 +266,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
 /* ********************************************************************************************** */
 
-    private Session buildSession(int userCount, int[] userIds){
-        Session ss = new Session();
-        return ss;
-    }
+
 
 
 /* ****************************************if****************************************************** */
