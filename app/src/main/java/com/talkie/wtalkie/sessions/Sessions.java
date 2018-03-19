@@ -94,22 +94,24 @@ public class Sessions {
         return sess;
     }
 
-    // add to database
-    public void add2(Session ss){
-        ss.saveOrUpdate("time = ?", Long.toString(ss.getTime()));
-    }
-
-    public void remove(Session ss){}
-
-    public void update(Session ss){}
 
 /* ********************************************************************************************** */
 
+    public Message getLastMessage(long sessionId){
+        Message m = null;
+        List<Message> msglist = DataSupport.select("sessiontime")
+                .where("sessiontime = ?", Long.toString(sessionId))
+                .find(Message.class);
+        if (!msglist.isEmpty()){
+            m = msglist.get(msglist.size()-1);
+        }
+        return m;
+    }
 
 /* ********************************************************************************************** */
 
     public void sendText(User originator, String text){
-        Log.v(TAG, "send text: ");
+        Log.v(TAG, "send text: " + text);
         try {
 
             // wrap message
@@ -121,6 +123,7 @@ public class Sessions {
             byte[] data = text.getBytes(Message.DEFAULT_ENCODING_FORMAT);
             message.setLength(data.length);
             message.setBody(data);
+            message.setDescription(text);
 
             // save message into message table
             message.save();

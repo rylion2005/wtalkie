@@ -3,6 +3,8 @@ package com.talkie.wtalkie.contacts;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
 import org.litepal.LitePal;
+import org.litepal.crud.DataSupport;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -56,13 +58,16 @@ public class Users {
     }
 
     public static User findByUid(String uid){
+        Log.d(TAG, "findByUid: " + uid);
         User user = null;
         for (User u : User.findAll(User.class)){
             if (u.getUid().equals(uid)){
                 user = u;
+                Log.d(TAG, "Found !!!!!!");
                 break;
             }
         }
+
         return user;
     }
 

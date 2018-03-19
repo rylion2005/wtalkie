@@ -35,6 +35,7 @@
             android:layout_height="wrap_content"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
+            android:textAllCaps="false"
             android:textColor="#9c9c9c"
             android:textSize="14sp"
             android:text="..............."/>
@@ -46,7 +47,8 @@
         android:layout_height="match_parent"
         android:gravity="center"
         android:textAllCaps="false"
-        android:textSize="18sp"
+        android:textColor="#9c9c9c"
+        android:textSize="14sp"
         android:text="last time"/>
 
     <CheckBox

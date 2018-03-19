@@ -11,6 +11,9 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.User;
+import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.sessions.Message;
 import com.talkie.wtalkie.sessions.Session;
 import com.talkie.wtalkie.sessions.Sessions;
 
@@ -93,11 +96,21 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
         for (Session s : mSessions.getSessionList()){
             Log.v(TAG, "Session: " + s.encode());
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
-            //vh.setTextView(R.id.TXV_Originator, s.getOriginator().getNick());
-            vh.setTextView(R.id.TXV_LastMessage, "Test message ...");
-            Date dateTime = new Date(s.getTime());
-            SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss");
-            vh.setTextView(R.id.TXV_LastMessageTime, format.format(dateTime));
+
+            // get originator
+            vh.setTextView(R.id.TXV_Originator, Users.findByUid(s.getUidFrom()).getNick());
+
+            // get last message
+            Message msg = mSessions.getLastMessage(s.getTime());
+            if (msg != null) {
+                Log.d(TAG, "last message: " + msg.toJsonString());
+                vh.setTextView(R.id.TXV_LastMessage, msg.getDescription());
+
+                // get last message time
+                Date dateTime = new Date(msg.getTime());
+                SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss");
+                vh.setTextView(R.id.TXV_LastMessageTime, format.format(dateTime));
+            }
         }
         mAdapter.notifyDataSetChanged();
     }

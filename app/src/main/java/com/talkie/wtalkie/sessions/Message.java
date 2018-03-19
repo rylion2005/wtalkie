@@ -9,6 +9,8 @@ package com.talkie.wtalkie.sessions;
 **   yl7 | 18-3-17: Created
 **
 */
+import android.util.Log;
+
 import com.google.gson.Gson;
 import com.talkie.wtalkie.global.GlobalConstants;
 
@@ -27,8 +29,10 @@ import org.litepal.crud.DataSupport;
 ** ********************************************************************************
 */
 public class Message extends DataSupport {
-    public static final int MAX_FILE_HEAD_LENGTH = 4096;
-    public static final int MAX_MESSAGE_LENGTH = 9*1024;
+    private static final String TAG = "Message";
+
+    public static final int MAX_FILE_HEAD_LENGTH = 1024;
+    public static final int MAX_MESSAGE_LENGTH = 1024;
 
     public static final String DEFAULT_ENCODING_FORMAT = "UTF-8";
 
@@ -51,6 +55,7 @@ public class Message extends DataSupport {
     // meta data
     private boolean isIncoming; // if it is a incoming message
     private int type;           // message type
+    private String description; // message summary description
     private int fileSize;       // file size only for file message
     private String fileName;    // file name only for file message
     private int length;         // byte message length
@@ -59,14 +64,16 @@ public class Message extends DataSupport {
 /* ********************************************************************************************** */
 
     public Message() {
+        Log.d(TAG, "new default message");
         this.time = System.currentTimeMillis();
         this.sessionTime = 0;
-        this.uidFrom = "";
-        this.uidTo   = "";
+        this.uidFrom = "default";
+        this.uidTo   = "default";
+        this.description = "default";
         this.isIncoming   = false;
         this.type = MESSAGE_TYPE_UNKNOWN;
         this.fileSize = 0;
-        this.fileName = "";
+        this.fileName = "default";
         this.length = 0;
     }
 
@@ -81,6 +88,14 @@ public class Message extends DataSupport {
         Gson gson = new Gson();
         return gson.toJson(this, Message.class).getBytes();
     }
+
+    public String toJsonString(){
+        Gson gson = new Gson();
+        return gson.toJson(this, Message.class);
+    }
+
+
+/* ********************************************************************************************** */
 
     public long getTime() {
         return time;
@@ -112,6 +127,18 @@ public class Message extends DataSupport {
 
     public void setUidTo(String uidTo) {
         this.uidTo = uidTo;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        if (description.length() > 16){
+            this.description = description.substring(0, 16) + "...";
+        } else {
+            this.description = description;
+        }
     }
 
     public boolean isIncoming() {
