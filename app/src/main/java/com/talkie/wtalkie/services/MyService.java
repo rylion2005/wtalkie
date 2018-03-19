@@ -18,7 +18,7 @@ import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
-import com.talkie.wtalkie.sessions.SessionManager;
+import com.talkie.wtalkie.sessions.Sessions;
 import com.talkie.wtalkie.sockets.Connector;
 import com.talkie.wtalkie.sockets.Streamer;
 
@@ -125,7 +125,7 @@ public class MyService extends Service {
         mRecorder.register(scb);
         mStreamer.register(scb);
 
-        SessionManager.getInstance();
+        Sessions.getInstance();
 
         Myself.makeMyself(this.getApplicationContext());
         registerActions();

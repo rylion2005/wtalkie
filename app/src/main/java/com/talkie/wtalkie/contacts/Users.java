@@ -47,6 +47,10 @@ public class Users {
         return User.count(User.class);
     }
 
+    public static List<User> getUsers(long[] indexes){
+        return User.findAll(User.class, indexes);
+    }
+
     public static User findAt(int index){
         return User.find(User.class, index);
     }
@@ -61,6 +65,7 @@ public class Users {
         }
         return user;
     }
+
 
 /* ********************************************************************************************** */
 

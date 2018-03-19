@@ -1,4 +1,4 @@
-package com.talkie.wtalkie;
+package com.talkie.wtalkie.global;
 
 
 import android.app.Application;
@@ -50,6 +50,8 @@ public class MainApplication extends Application  {
 
     private void init(){
         Log.v(TAG, "init...");
+
+        GlobalContext.buildGlobalContext(getApplicationContext());
 
         // LitePal initialize ASAP
         LitePal.initialize(this);

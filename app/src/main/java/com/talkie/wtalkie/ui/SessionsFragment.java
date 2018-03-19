@@ -11,10 +11,8 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.User;
-import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.sessions.Session;
-import com.talkie.wtalkie.sessions.SessionManager;
+import com.talkie.wtalkie.sessions.Sessions;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -24,7 +22,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     private static final String TAG = "SessionsFragment";
 
     private MyBaseAdapter mAdapter;
-    private SessionManager mSessionManager;
+    private Sessions mSessions;
 
 
 /* ********************************************************************************************** */
@@ -40,7 +38,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSessionManager = SessionManager.getInstance();
+        mSessions = Sessions.getInstance();
     }
 
     @Override
@@ -88,20 +86,19 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
         refreshViews();
     }
 
-
     private void refreshViews(){
-        Log.v(TAG, "reloadListView()");
+        Log.v(TAG, "refreshViews()");
 
         mAdapter.clearItemList();
-        for (Session s : mSessionManager.getSessions()){
+        for (Session s : mSessions.getSessionList()){
+            Log.v(TAG, "Session: " + s.encode());
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
-            vh.setTextView(R.id.TXV_Originator, s.getOriginator().getNick());
+            //vh.setTextView(R.id.TXV_Originator, s.getOriginator().getNick());
             vh.setTextView(R.id.TXV_LastMessage, "Test message ...");
-            Date dateTime = new Date(s.getOriginateTime());
+            Date dateTime = new Date(s.getTime());
             SimpleDateFormat format = new SimpleDateFormat("hh:mm:ss");
             vh.setTextView(R.id.TXV_LastMessageTime, format.format(dateTime));
         }
-
         mAdapter.notifyDataSetChanged();
     }
 

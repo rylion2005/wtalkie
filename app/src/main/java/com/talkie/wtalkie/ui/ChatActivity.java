@@ -19,16 +19,14 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.audio.Recorder;
 import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.Users;
 import com.talkie.wtalkie.sessions.Session;
-import com.talkie.wtalkie.sessions.SessionManager;
+import com.talkie.wtalkie.sessions.Sessions;
 import com.talkie.wtalkie.sockets.Messenger;
 
 import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -53,19 +51,18 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private boolean mMessageModeText = true;
 
     // Audio function
-    private final Recorder mRecorder = Recorder.getInstance();
-    private boolean mRecoding = false;
+    //private final Recorder mRecorder = Recorder.getInstance();
+    //private boolean mRecoding = false;
 
     // Messenger function
-    private final Messenger mMessenger = Messenger.getInstance();
+    //private final Messenger mMessenger = Messenger.getInstance();
 
-    private final List<Object> mMessageQueue = new ArrayList<>();
     private final UiHandler mHandler = new UiHandler();
 
     // Session information
+    private Sessions mSessionManager;
     private Session mActiveSession;
-    private int[] mUserIds;
-    private String mTitle;
+    private long[] mUserIds;
 
 
 /* ********************************************************************************************** */
@@ -89,14 +86,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
                 break;
 
             case R.id.TXV_Talk:
-                mRecoding = !mRecoding;
-                if (mRecoding){
-                    mTXVTalk.setText("Stop Talk");
-                    mRecorder.start();
-                } else {
-                    mTXVTalk.setText("Start Talk");
-                    mRecorder.stop();
-                }
                 break;
 
             case R.id.EDT_Input:
@@ -110,17 +99,12 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
                 break;
             case R.id.BTN_Action:
                 // Send to network
-                try {
-                    String input = mEDTText.getText().toString();
-                    mMessenger.sendText(input.getBytes("UTF-8"),
-                            input.getBytes("UTF-8").length);
-                    // Show in list view
-                    showTextMessage(false, input);
-                    mEDTText.getText().clear();
-                    switchAction(false);
-                } catch (UnsupportedEncodingException e) {
-                    e.printStackTrace();
-                }
+                String input = mEDTText.getText().toString();
+                mSessionManager.sendText(Myself.fromMyself(this), input);
+                // Show in list view
+                showTextMessage(false, input);
+                mEDTText.getText().clear();
+                switchAction(false);
                 break;
             default:
                 break;
@@ -150,43 +134,13 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
 
     private void init() {
-        MessageListener ml = new MessageListener();
-        mMessenger.register(ml);
-        mActiveSession = initSession();
-    }
+        mSessionManager = Sessions.getInstance();
 
-    private Session initSession(){
         Intent intent = getIntent();
-        mUserIds = intent.getIntArrayExtra("UserIds");
-        StringBuilder title = new StringBuilder(); // string for title bar
-
+        mUserIds = intent.getLongArrayExtra("UserIds");
+        List<User> receivers = Users.getUsers(mUserIds);
         User me = Myself.fromMyself(this);
-        List<User> receivers = new ArrayList<>();
-        for (int i = 0; i < mUserIds.length; i++){
-            User u = Users.findAt(mUserIds[i]);
-            if (i < 2) {
-                title.append(u.getNick());
-                if (i > 0) {
-                    title.append(",");
-                }
-            }
-            receivers.add(u);
-        }
-
-        if (mUserIds.length > 1){
-            title.append("...");
-        }
-
-        Session ss = SessionManager.getInstance().getSession(me, receivers);
-        if (ss.getState() == Session.SESSION_NOT_INITIALIZED){
-            ss.setName(title.toString());
-            ss.setType(Session.SESSION_TYPE_P2P);
-            ss.setState(Session.SESSION_ACTIVE);
-            SessionManager.getInstance().add(ss);
-        } else {
-            ss.setState(Session.SESSION_ACTIVE);
-        }
-        return ss;
+        mActiveSession = mSessionManager.getSession(me, receivers);
     }
 
     private void initViews() {
@@ -262,12 +216,6 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
             mTXVTalk.setVisibility(View.VISIBLE);
         }
     }
-
-
-/* ********************************************************************************************** */
-
-
-
 
 /* ****************************************if****************************************************** */
 

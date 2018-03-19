@@ -3,6 +3,8 @@ package com.talkie.wtalkie.sockets;
 
 import android.util.Log;
 
+import com.talkie.wtalkie.global.GlobalConstants;
+
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
@@ -42,7 +44,6 @@ public class Messenger {
 
     private static final String MULTICAST_ADDRESS = "224.0.0.122";
     private static final int SOCKET_PORT = 52521;
-    private static final int SOCKET_BUFFER_BYTES = 1024;
 
     private static final Messenger mInstance = new Messenger();
 
@@ -84,8 +85,8 @@ public class Messenger {
 
         private MulticastSocket mSocket;
         private final DatagramPacket mPacket = new DatagramPacket(
-                new byte[SOCKET_BUFFER_BYTES],
-                SOCKET_BUFFER_BYTES);
+                new byte[GlobalConstants.MAX_BYTE_LENGTH],
+                GlobalConstants.MAX_BYTE_LENGTH);
 
         private Listener(){
             try {
@@ -131,8 +132,8 @@ public class Messenger {
         private volatile boolean mRunning = false;
 
         private final DatagramPacket mPacket = new DatagramPacket(
-                new byte[SOCKET_BUFFER_BYTES],
-                SOCKET_BUFFER_BYTES);
+                new byte[GlobalConstants.MAX_BYTE_LENGTH],
+                GlobalConstants.MAX_BYTE_LENGTH);
 
         private InetAddress mInetAddress;
 
