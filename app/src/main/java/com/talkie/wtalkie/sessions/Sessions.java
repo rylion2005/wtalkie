@@ -49,13 +49,13 @@ public class Sessions {
         Log.v(TAG, "get session: O=" + originatorId.getUid() + ", R=" + participants.size());
 
         // query session for database
-        //session = hasSession(originatorId, participants);
+        session = hasSession(originatorId, participants);
         if (session == null){ // no old session
             session = new Session(originatorId, participants);
             session.save();
         } else {
             session.setState(Session.SESSION_ACTIVE);
-            session.saveOrUpdate("time = ", Long.toString(session.getTime()));
+            session.saveOrUpdate("time = ?", Long.toString(session.getTime()));
         }
 
         Log.v(TAG, "::::>>> ");
@@ -95,7 +95,7 @@ public class Sessions {
     }
 
     // add to database
-    public void add(Session ss){
+    public void add2(Session ss){
         ss.saveOrUpdate("time = ?", Long.toString(ss.getTime()));
     }
 
@@ -115,22 +115,15 @@ public class Sessions {
             // wrap message
             Message message = new Message();
             message.setSessionTime(mActiveSession.getTime());
-            message.setOriginatorUid(originator.getUid());
+            message.setUidFrom(originator.getUid());
             message.setIncoming(false);
             message.setType(Message.MESSAGE_TYPE_TEXT);
-            message.setFileSize(0);
-            message.setFileName("");
             byte[] data = text.getBytes(Message.DEFAULT_ENCODING_FORMAT);
             message.setLength(data.length);
             message.setBody(data);
 
             // save message into message table
             message.save();
-
-            // save message into session table
-            //mActiveSession.addMessage(message);
-            //mActiveSession.saveOrUpdate("time = ?",
-            //        Long.toString(mActiveSession.getTime()));
 
             // encode and send message
             mMessenger.sendText(message.encode(), message.encode().length);

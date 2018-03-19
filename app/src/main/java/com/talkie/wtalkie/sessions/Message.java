@@ -10,6 +10,8 @@ package com.talkie.wtalkie.sessions;
 **
 */
 import com.google.gson.Gson;
+import com.talkie.wtalkie.global.GlobalConstants;
+
 import org.litepal.crud.DataSupport;
 
 
@@ -26,11 +28,12 @@ import org.litepal.crud.DataSupport;
 */
 public class Message extends DataSupport {
     public static final int MAX_FILE_HEAD_LENGTH = 4096;
-    public static final int MAX_MESSAGE_LENGTH = 10240;
+    public static final int MAX_MESSAGE_LENGTH = 9*1024;
 
     public static final String DEFAULT_ENCODING_FORMAT = "UTF-8";
 
-    public static final int MESSAGE_TYPE_SESSION_INFO = 0xAA00;
+    public static final int MESSAGE_TYPE_UNKNOWN = 0xAA00;
+    public static final int MESSAGE_TYPE_SESSION_INFO = 0xAADD;
     public static final int MESSAGE_TYPE_BYTE = 0xAAE0;
     public static final int MESSAGE_TYPE_EMOJI = 0xAAE1;
     public static final int MESSAGE_TYPE_TEXT = 0xAAE2;
@@ -39,19 +42,32 @@ public class Message extends DataSupport {
     public static final int MESSAGE_TYPE_FILE_AUDIO = 0xAAE5;
     public static final int MESSAGE_TYPE_FILE_VIDEO = 0xAAE6;
 
-    private long time;             // use it as message id
-    private long sessionTime;      // session time as session id
-    private boolean isIncoming;    // if it is a incoming message
-    private String originatorUid;  // originator uid
-    private int type;          // message type
-    private int fileSize;      // file size only for file message
-    private String fileName;   // file name only for file message
-    private int length;        // byte message length
-    private byte[] body;       // byte message body
+    // relation database key
+    private long time;          // message main key
+    private long sessionTime;   // session main key
+    private String uidFrom;     // originator uid, User main key
+    private String uidTo;       // receiver uid, User main key
 
-    /* ********************************************************************************************** */
+    // meta data
+    private boolean isIncoming; // if it is a incoming message
+    private int type;           // message type
+    private int fileSize;       // file size only for file message
+    private String fileName;    // file name only for file message
+    private int length;         // byte message length
+    private byte[] body = new byte[MAX_MESSAGE_LENGTH]; // byte message body
+
+/* ********************************************************************************************** */
+
     public Message() {
-        time = System.currentTimeMillis();
+        this.time = System.currentTimeMillis();
+        this.sessionTime = 0;
+        this.uidFrom = "";
+        this.uidTo   = "";
+        this.isIncoming   = false;
+        this.type = MESSAGE_TYPE_UNKNOWN;
+        this.fileSize = 0;
+        this.fileName = "";
+        this.length = 0;
     }
 
     public static Message decode(byte[] bytes, int length) {
@@ -82,20 +98,28 @@ public class Message extends DataSupport {
         this.sessionTime = sessionTime;
     }
 
+    public String getUidFrom() {
+        return uidFrom;
+    }
+
+    public void setUidFrom(String uidFrom) {
+        this.uidFrom = uidFrom;
+    }
+
+    public String getUidTo() {
+        return uidTo;
+    }
+
+    public void setUidTo(String uidTo) {
+        this.uidTo = uidTo;
+    }
+
     public boolean isIncoming() {
         return isIncoming;
     }
 
     public void setIncoming(boolean incoming) {
         isIncoming = incoming;
-    }
-
-    public String getOriginatorUid() {
-        return originatorUid;
-    }
-
-    public void setOriginatorUid(String originatorUid) {
-        this.originatorUid = originatorUid;
     }
 
     public int getType() {

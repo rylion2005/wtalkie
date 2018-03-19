@@ -44,15 +44,16 @@ public class Session extends DataSupport{
     public static final int SESSION_ACTIVE = 0xDC;
 
     // data members
-    private long time;   // use it as unique id
+    private long time;   // session main key
     private String name; // session name
     private int type;    // session type
     private int state;   // session active state
-    private User originator;   // originator
+    private String uidFrom;   // originator uid
+    private String uidTo;     // receiver uid only for p2p session
     // receivers uid list
-    private final List<User> participants = new ArrayList<>();
+    // private final List<User> participants = new ArrayList<>();
     // message id list
-    private final List<Message> messages = new ArrayList<>();
+    // private final List<Message> messages = new ArrayList<>();
 
 
 /* ********************************************************************************************** */
@@ -63,24 +64,19 @@ public class Session extends DataSupport{
         this.name = "Test Session";
         this.type = SESSION_TYPE_UNKNOWN;
         this.state = SESSION_NOT_INITIALIZED;
-
-        User u1 = new User();
-        User u2 = new User();
-        User u3 = new User();
-        this.originator = u1;
-        this.participants.add(u2);
-        this.participants.add(u3);
+        this.uidFrom = "";
+        this.uidTo = "";
     }
 
     public Session(User originator, List<User> participants) {
-        Log.v(TAG, "new session: " + participants.size());
+        Log.v(TAG, "new session: " + originator.getUid());
 
         // session time and state
         this.time = System.currentTimeMillis();
         this.state = SESSION_ACTIVE;
 
-        this.originator = originator;
-        this.participants.addAll(participants);
+        this.uidFrom = originator.getUid();
+        //this.participants.addAll(participants);
 
         // session type and session name
         StringBuilder sb = new StringBuilder();
@@ -90,12 +86,15 @@ public class Session extends DataSupport{
             sb.append(",");
             sb.append(participants.get(1).getNick());
             sb.append("...");
+            this.uidTo = "";
         } else if (participants.size() > 0){
             this.type = SESSION_TYPE_P2P;
             sb.append(participants.get(0).getNick());
+            this.uidTo = participants.get(0).getUid();
         } else {
             this.type = SESSION_TYPE_UNKNOWN;
             sb.append("error receivers !!!");
+            this.uidTo = "";
         }
         this.name = sb.toString();
     }
@@ -115,38 +114,24 @@ public class Session extends DataSupport{
             return false;
         }
 
-        if ((this.originator == null) || (this.participants == null)){
+        if (this.uidFrom == null){
             return false;
         }
 
-        if (originator.getUid().equals(this.originator)
-                && (participants.size() == this.participants.size())){
-            boolean found = false;
-            int count = 0;
-            for (User newer : participants){
-                for (User elder : this.participants){
-                    if (newer.getUid().equals(elder.getUid())){
-                       found = true;
-                       count++;
-                       break;
-                    }
-                }
+        if (!originator.getUid().equals(this.uidFrom)){
+            return false;
+        }
 
-                if (!found){ // nothing found, go home directly
-                    break;
-                } else {
-                    found = false; // reset status
-                }
-            }
+        if (participants.size() > 1){
+            return true;
+        }
 
-            // found count is completely same
-            if (count == participants.size()){
+        if (participants.size() == 1){
+            if (participants.get(0).getUid().equals(this.uidTo)){
                 existed = true;
-                Log.v(TAG, "session found");
-            } else {
-                Log.v(TAG, "session not found");
             }
         }
+
         return existed;
     }
 
@@ -182,14 +167,6 @@ public class Session extends DataSupport{
         this.type = type;
     }
 
-    public User getOriginator() {
-        return originator;
-    }
-
-    public void setOriginator(User originator) {
-        this.originator = originator;
-    }
-
     public int getState() {
         return state;
     }
@@ -198,20 +175,20 @@ public class Session extends DataSupport{
         this.state = state;
     }
 
-    public List<User> getParticipants() {
-        return participants;
+    public String getUidFrom() {
+        return uidFrom;
     }
 
-    public void addParticipants(User u){
-        participants.add(u);
+    public void setUidFrom(String uidFrom) {
+        this.uidFrom = uidFrom;
     }
 
-    public List<Message> getMessages() {
-        return messages;
+    public String getUidTo() {
+        return uidTo;
     }
 
-    public void addMessage(Message msg){
-        messages.add(msg);
+    public void setUidTo(String uidTo) {
+        this.uidTo = uidTo;
     }
 
     public void dump(){
