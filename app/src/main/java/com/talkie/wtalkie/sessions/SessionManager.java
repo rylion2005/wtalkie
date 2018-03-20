@@ -1,6 +1,7 @@
 package com.talkie.wtalkie.sessions;
 
 
+import android.os.Message;
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -20,10 +21,9 @@ import com.talkie.wtalkie.sockets.Messenger;
 **     
 */
 public class SessionManager {
-    private static final String TAG = "Sessions";
+    private static final String TAG = "SessionManager";
 
     private static SessionManager mInstance;
-    private List<Session> mSessions;
     private Session mActiveSession;
     private final Messenger mMessenger = Messenger.getInstance();
 
@@ -41,53 +41,31 @@ public class SessionManager {
     }
 
 /* ********************************************************************************************** */
-/*
-    public Session getSession(String originatorId, List<User> receiverIds){
-        Session session = null;
 
-        Log.v(TAG, "get session: O=" + originatorId.getUid() + ", R=" + participants.size());
-
-        // query session for database
-        session = hasSession(originatorId, participants);
-        if (session == null){ // no old session
-            session = new Session(originatorId, participants);
-            session.save();
-        } else {
-            session.setState(Session.SESSION_ACTIVE);
-            session.saveOrUpdate("time = ?", Long.toString(session.getTime()));
-        }
-
-        Log.v(TAG, "::::>>> ");
-        session.dump();
-        Log.v(TAG, "::::~~~ ");
-
-        // flag active session
-        mActiveSession = session;
-        return session;
-    }
-*/
-    public Session findOrNewSession(String originatorUid, long[] mReceiverIndexes){
-        Session session = null;
-
+    public Session buildSession(String originatorUid, long[] mReceiverIndexes){
+        Log.v(TAG, "build session: from=" + originatorUid);
         List<String> uids = new ArrayList<>();
         for (User u : User.findAll(User.class, mReceiverIndexes)){
             uids.add(u.getUid());
         }
 
-        session = findSession(originatorUid, uids);
-        if (session == null){
-            session = new Session(originatorUid, uids);
+        mActiveSession = findSession(originatorUid, uids);
+        if (mActiveSession == null){
+            mActiveSession = new Session(originatorUid, uids);
         }
-        session.setState(Session.SESSION_ACTIVE);
-        session.saveOrUpdate("sid = ?",
-                Long.toString(session.getSid()));
-        session.dump();
-        mActiveSession = session;
-        return session;
+        mActiveSession.setState(Session.SESSION_ACTIVE);
+        mActiveSession.saveOrUpdate("sid = ?",
+                Long.toString(mActiveSession.getSid()));
+        mActiveSession.dump();
+        return mActiveSession;
     }
 
-    public Session findSessionByIndex(long index){
-        return Session.find(Session.class, index);
+    public Session buildSession(long index){
+        Log.v(TAG, "build session: at=" + index);
+        mActiveSession = Session.find(Session.class, index);
+        mActiveSession.setState(Session.SESSION_ACTIVE);
+        mActiveSession.dump();
+        return mActiveSession;
     }
 
     public Session findSessionById(long sessionid){
@@ -105,6 +83,15 @@ public class SessionManager {
 
     public Session getActiveSession(){
         return mActiveSession;
+    }
+
+    public void updateActiveSessionState(boolean active){
+        if (active) {
+            mActiveSession.setState(Session.SESSION_ACTIVE);
+        } else {
+            mActiveSession.setState(Session.SESSION_INACTIVE);
+            mActiveSession = null;
+        }
     }
 
     public List<Session> getSessionList(){
@@ -127,6 +114,15 @@ public class SessionManager {
             }
         }
         return sess;
+    }
+
+    public void deleteSession(int index){
+        Session ss = Session.find(Session.class, index);
+        // delete session
+        Session.delete(Session.class, index);
+
+        // delete all messages in this session
+        deleteMessages(ss.getSid());
     }
 
 
@@ -162,6 +158,11 @@ public class SessionManager {
         }
 
         return packet;
+    }
+
+    public void deleteMessages(long sid){
+        Packet.deleteAll(Packet.class, "sessionId = ?",
+                Long.toString(sid));
     }
 
 /* ********************************************************************************************** */

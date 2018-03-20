@@ -60,11 +60,12 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private Button mBTNAction;
 
     private MyBaseAdapter mAdapter;
-    private boolean mMessageModeText = true;
-    private final UiHandler mHandler = new UiHandler();
+
     // Session information
     private SessionManager mSessionManager;
-    private Session mActiveSession;
+    //private Session mActiveSession;
+
+    private final UiHandler mHandler = new UiHandler();
 
 
 /* ********************************************************************************************** */
@@ -76,6 +77,22 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         setContentView(R.layout.activity_chat);
         init();
         initViews();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        mSessionManager.getActiveSession().setState(Session.SESSION_INACTIVE);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
@@ -147,26 +164,21 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
         // call from contacts fragment
         if (userIds != null && userIds.length > 0){
-            mActiveSession = mSessionManager.findOrNewSession(
-                    Myself.fromMyself(this).getUid(),
-                    userIds);
+            mSessionManager.buildSession(Myself.fromMyself(this).getUid(),userIds);
         }
 
         // call from session fragment
         if (position > -1){
-            mActiveSession = mSessionManager.findSessionByIndex(position);
-            if (mActiveSession != null) {
-                mActiveSession.setState(Session.SESSION_ACTIVE);
-            }
+            mSessionManager.buildSession(position);
         }
 
-        Log.v(TAG, "active session: " + mActiveSession.getSid());
+        Log.v(TAG, "active session: " + mSessionManager.getActiveSession().getSid());
     }
 
     private void initViews() {
         try {
             ActionBar ab = getSupportActionBar();
-            ab.setTitle(mActiveSession.getName());
+            ab.setTitle(mSessionManager.getActiveSession().getName());
         } catch (NullPointerException e) {
             e.printStackTrace();
         }
@@ -194,12 +206,12 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
     private void refreshMessages(){
         Log.v(TAG, "refreshMessages");
-        if (mActiveSession == null){
+        if (mSessionManager.getActiveSession() == null){
             Log.e(TAG, "No active session !");
             return;
         }
 
-        for (Packet p : mSessionManager.getAllMessage(mActiveSession.getSid())){
+        for (Packet p : mSessionManager.getAllMessage(mSessionManager.getActiveSession().getSid())){
             String message = new String(p.getMessageBody(), 0, p.getMessageLength());
             showTextMessage(p.isIncoming(), message);
         }

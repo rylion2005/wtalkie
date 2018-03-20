@@ -31,6 +31,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     private MyBaseAdapter mAdapter;
 
     private long[] mUserIds;
+    private String[] mUids;
 
 
 /* ********************************************************************************************** */
@@ -92,9 +93,11 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         // state machine
         if (mState == SELECT_STATE_IDLE){
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-            long[] ids = new long[1];
-            ids[0] = position + 1;
-            intent.putExtra("UserIds", ids);
+            mUids = new String[1];
+
+            MyBaseAdapter.ViewHolder vh = (MyBaseAdapter.ViewHolder) mAdapter.getItem(position);
+
+            intent.putExtra("UserIds", mUids);
             startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK
             CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);

@@ -15,6 +15,7 @@ import android.util.Log;
 
 import com.talkie.wtalkie.audio.Recorder;
 import com.talkie.wtalkie.audio.Tracker;
+import com.talkie.wtalkie.contacts.Identity;
 import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.UserManager;
@@ -46,6 +47,7 @@ public class MyService extends Service {
 
 
     FileOutputStream fos;
+    private String mInternetAddress = "";
 
 /* ********************************************************************************************** */
 
@@ -163,7 +165,7 @@ public class MyService extends Service {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
-
+        Myself.updateInetAddress(getApplicationContext(), mInternetAddress);
         mUserManager.updateState();
     }
 
@@ -184,6 +186,7 @@ public class MyService extends Service {
             Log.v(TAG, "onReceive: " + intent);
             String action = intent.getAction();
             boolean connectivity = false;
+            String inet;
 
             if (action.equals(ConnectivityManager.CONNECTIVITY_ACTION)){
 
@@ -263,6 +266,7 @@ public class MyService extends Service {
     class BeatHearting extends TimerTask{
         @Override
         public void run() {
+            mInternetAddress = Identity.getInternetAddress();
             heartBeat();
         }
     }

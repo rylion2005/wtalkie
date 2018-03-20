@@ -91,4 +91,12 @@ public class Myself extends User {
         editor.putString("nick", s);
         editor.apply();
     }
+
+    public static void updateInetAddress(Context c, String s){
+        Log.v(TAG, "updateInetAddress: ");
+        SharedPreferences sp = c.getSharedPreferences(MYSELF_PREF, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sp.edit();
+        editor.putString("netaddr", s);
+        editor.apply();
+    }
 }

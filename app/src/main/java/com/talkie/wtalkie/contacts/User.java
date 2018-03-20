@@ -1,8 +1,6 @@
 package com.talkie.wtalkie.contacts;
 
 
-
-import android.text.TextUtils;
 import com.google.gson.Gson;
 import org.litepal.crud.DataSupport;
 

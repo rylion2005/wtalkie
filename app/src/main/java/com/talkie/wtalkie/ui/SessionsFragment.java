@@ -1,9 +1,11 @@
 package com.talkie.wtalkie.ui;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
+import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -21,18 +23,20 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 
-public class SessionsFragment extends Fragment implements AdapterView.OnItemClickListener {
+public class SessionsFragment extends Fragment
+        implements AdapterView.OnItemClickListener,
+        AdapterView.OnItemLongClickListener {
     private static final String TAG = "SessionsFragment";
 
     private MyBaseAdapter mAdapter;
     private SessionManager mSessionManager;
 
+    private int mSelectedPosition = -1;
+
 
 /* ********************************************************************************************** */
 
-
     public SessionsFragment() { }
-
 
     public static SessionsFragment newInstance() {
         return new SessionsFragment();
@@ -82,6 +86,27 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
         startActivity(intent);
     }
 
+    @Override
+    public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
+        Log.v(TAG, "onItemLongClick: " + position);
+        mSelectedPosition = position;
+        new AlertDialog.Builder(this.getActivity())
+                .setTitle("Delete session")
+                .setMessage("Delete?")
+                .setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        mSessionManager.deleteSession(mSelectedPosition);
+                        refreshViews();
+                    }
+                })
+                .setNegativeButton("No", null)
+                .show();
+
+        return true;
+    }
+
+
 /* ********************************************************************************************** */
 
 
@@ -90,6 +115,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
         ListView lsv = rootView.findViewById(R.id.LSV_Sessions);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
+        lsv.setOnItemLongClickListener(this);
         refreshViews();
     }
 
@@ -120,7 +146,6 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     }
 
 /* ********************************************************************************************** */
-
 
     /**
      * This interface must be implemented by activities that contain this

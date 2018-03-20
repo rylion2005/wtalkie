@@ -97,7 +97,7 @@ public class MainActivity extends BaseActivity {
         mSessionsFragment = new SessionsFragment();
         mContactsFragment = new ContactsFragment();
         mProfileFragment = new ProfileFragment();
-        addFragment(mProfileFragment);
+        addFragment(mSessionsFragment);
     }
 
     private void addFragment(Fragment fragment) {

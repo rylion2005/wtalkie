@@ -49,7 +49,8 @@ public class Session extends DataSupport{
     private long time;   // session start time with milliseconds
     private int type;    // session type
     private int state;   // session active state
-    private String name; // session name
+    private int unreadCount; // unread message count
+    private String name;     // session name
     private String originator; // originator uid
     private final List<String> receivers = new ArrayList<>(); // receivers uid
 
@@ -65,6 +66,7 @@ public class Session extends DataSupport{
 
         this.state = SESSION_NOT_INITIALIZED;
         this.originator = "default";
+        this.unreadCount = 0;
         this.type = SESSION_TYPE_UNKNOWN;
         this.name = "default";
     }
@@ -190,6 +192,14 @@ public class Session extends DataSupport{
 
     public String getOriginator() {
         return originator;
+    }
+
+    public int getUnreadCount() {
+        return unreadCount;
+    }
+
+    public void setUnreadCount(int unreadCount) {
+        this.unreadCount = unreadCount;
     }
 
     public void setOriginator(String originator) {
