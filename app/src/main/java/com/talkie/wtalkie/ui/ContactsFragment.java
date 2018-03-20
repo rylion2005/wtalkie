@@ -1,6 +1,6 @@
 package com.talkie.wtalkie.ui;
 
-import android.app.ActionBar;
+
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -15,14 +15,11 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.CheckBox;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.User;
-import com.talkie.wtalkie.contacts.Users;
-import com.talkie.wtalkie.services.MyService;
+import com.talkie.wtalkie.contacts.UserManager;
 
-import static android.view.Window.FEATURE_CUSTOM_TITLE;
 
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
     private static final String TAG = "ContactsFragment";
@@ -95,9 +92,9 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         // state machine
         if (mState == SELECT_STATE_IDLE){
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-            mUserIds = new long[1];
-            mUserIds[0] = position + 1;
-            intent.putExtra("UserIds", mUserIds);
+            long[] ids = new long[1];
+            ids[0] = position + 1;
+            intent.putExtra("UserIds", ids);
             startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK
             CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);
@@ -118,7 +115,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         if (item.getItemId() == R.id.SelectMore) {
 
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-            int count = Users.getUsersCount();
+            int count = UserManager.getUsersCount();
             mUserIds = new long[count];
             for (int i = 0; i < count; i++){
                 mUserIds[i] = i + 1;
@@ -156,7 +153,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         }
 
         mAdapter.clearItemList();
-        for (User user : Users.findAll()) {
+        for (User user : UserManager.findAll()) {
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
             vh.setTextView(R.id.TXV_Nick, user.getNick());
             vh.setTextView(R.id.TXV_IpAddress, user.getAddress());

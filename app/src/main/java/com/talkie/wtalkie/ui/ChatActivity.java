@@ -20,16 +20,28 @@ import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Myself;
-import com.talkie.wtalkie.contacts.User;
-import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.sessions.Packet;
 import com.talkie.wtalkie.sessions.Session;
-import com.talkie.wtalkie.sessions.Sessions;
+import com.talkie.wtalkie.sessions.SessionManager;
 import com.talkie.wtalkie.sockets.Messenger;
 
 import java.io.UnsupportedEncodingException;
-import java.util.List;
 
-
+/*
+** ********************************************************************************
+**
+** ChatActivity
+**   This is chat UI for all sessions.
+**
+**   Generally, we may enter this activity from:
+**     - ContactsFragment with contact uid parameters.
+**     - SessionsFragment with session time
+**
+** USAGE:
+**   ......
+**
+** ********************************************************************************
+*/
 public class ChatActivity extends BaseActivity implements View.OnClickListener,
         AdapterView.OnItemClickListener , TextWatcher {
     private static final String TAG = "ChatActivity";
@@ -49,20 +61,10 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
     private MyBaseAdapter mAdapter;
     private boolean mMessageModeText = true;
-
-    // Audio function
-    //private final Recorder mRecorder = Recorder.getInstance();
-    //private boolean mRecoding = false;
-
-    // Messenger function
-    //private final Messenger mMessenger = Messenger.getInstance();
-
     private final UiHandler mHandler = new UiHandler();
-
     // Session information
-    private Sessions mSessionManager;
+    private SessionManager mSessionManager;
     private Session mActiveSession;
-    private long[] mUserIds;
 
 
 /* ********************************************************************************************** */
@@ -134,19 +136,40 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
 
     private void init() {
-        mSessionManager = Sessions.getInstance();
+        Log.v(TAG, "init: ");
+        mSessionManager = SessionManager.getInstance();
 
         Intent intent = getIntent();
-        mUserIds = intent.getLongArrayExtra("UserIds");
-        List<User> receivers = Users.getUsers(mUserIds);
-        User me = Myself.fromMyself(this);
-        mActiveSession = mSessionManager.getSession(me, receivers);
+        long[] userIds = intent.getLongArrayExtra("UserIds");
+        int position = intent.getIntExtra("SessionIndex", -1);
+        Log.v(TAG, "uer ids: " + userIds);
+        Log.v(TAG, "position: " + position);
+
+        // call from contacts fragment
+        if (userIds != null && userIds.length > 0){
+            mActiveSession = mSessionManager.findOrNewSession(
+                    Myself.fromMyself(this).getUid(),
+                    userIds);
+        }
+
+        // call from session fragment
+        if (position > -1){
+            mActiveSession = mSessionManager.findSessionByIndex(position);
+            if (mActiveSession != null) {
+                mActiveSession.setState(Session.SESSION_ACTIVE);
+            }
+        }
+
+        Log.v(TAG, "active session: " + mActiveSession.getSid());
     }
 
     private void initViews() {
-
-        ActionBar ab = getSupportActionBar();
-        ab.setTitle(mActiveSession.getName());
+        try {
+            ActionBar ab = getSupportActionBar();
+            ab.setTitle(mActiveSession.getName());
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
 
         mIMVType = findViewById(R.id.IMV_MessageMode);
         mEDTText = findViewById(R.id.EDT_Input);
@@ -165,6 +188,21 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         ListView lsv = findViewById(R.id.LSV_Messages);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
+
+        refreshMessages();
+    }
+
+    private void refreshMessages(){
+        Log.v(TAG, "refreshMessages");
+        if (mActiveSession == null){
+            Log.e(TAG, "No active session !");
+            return;
+        }
+
+        for (Packet p : mSessionManager.getAllMessage(mActiveSession.getSid())){
+            String message = new String(p.getMessageBody(), 0, p.getMessageLength());
+            showTextMessage(p.isIncoming(), message);
+        }
     }
 
     private void showTextMessage(boolean isIncomingMessage, String text) {

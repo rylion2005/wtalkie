@@ -17,7 +17,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.Users;
+import com.talkie.wtalkie.contacts.UserManager;
 import com.talkie.wtalkie.services.MyService;
 
 
@@ -162,7 +162,7 @@ public class MainActivity extends BaseActivity {
         }
     }
 
-    class EventCallback implements Users.UserChangeCallback, MyService.ConnectivityCallback{
+    class EventCallback implements UserManager.UserChangeCallback, MyService.ConnectivityCallback{
 
         @Override
         public void onUserChanged() {

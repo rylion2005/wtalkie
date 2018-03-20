@@ -3,6 +3,7 @@ package com.talkie.wtalkie.sessions;
 
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 import org.litepal.crud.DataSupport;
 import com.talkie.wtalkie.contacts.User;
@@ -18,32 +19,30 @@ import com.talkie.wtalkie.sockets.Messenger;
 **   yl7 | 18-3-17: Created
 **     
 */
-public class Sessions {
+public class SessionManager {
     private static final String TAG = "Sessions";
 
-    private static Sessions mInstance;
-
+    private static SessionManager mInstance;
     private List<Session> mSessions;
     private Session mActiveSession;
-
     private final Messenger mMessenger = Messenger.getInstance();
 
 /* ********************************************************************************************** */
 
-    private Sessions(){
+    private SessionManager(){
         mMessenger.register(new MessageListener());
     }
 
-    public static Sessions getInstance(){
+    public static SessionManager getInstance(){
         if (mInstance == null){
-            mInstance = new Sessions();
+            mInstance = new SessionManager();
         }
         return mInstance;
     }
 
 /* ********************************************************************************************** */
-
-    public Session getSession(User originatorId, List<User> participants){
+/*
+    public Session getSession(String originatorId, List<User> receiverIds){
         Session session = null;
 
         Log.v(TAG, "get session: O=" + originatorId.getUid() + ", R=" + participants.size());
@@ -66,6 +65,43 @@ public class Sessions {
         mActiveSession = session;
         return session;
     }
+*/
+    public Session findOrNewSession(String originatorUid, long[] mReceiverIndexes){
+        Session session = null;
+
+        List<String> uids = new ArrayList<>();
+        for (User u : User.findAll(User.class, mReceiverIndexes)){
+            uids.add(u.getUid());
+        }
+
+        session = findSession(originatorUid, uids);
+        if (session == null){
+            session = new Session(originatorUid, uids);
+        }
+        session.setState(Session.SESSION_ACTIVE);
+        session.saveOrUpdate("sid = ?",
+                Long.toString(session.getSid()));
+        session.dump();
+        mActiveSession = session;
+        return session;
+    }
+
+    public Session findSessionByIndex(long index){
+        return Session.find(Session.class, index);
+    }
+
+    public Session findSessionById(long sessionid){
+        Session session = null;
+        // FIXME: 18-3-20, optimize by sql sentence
+        //Session.select("time").where("time = ?", Long.toString(id));
+        for (Session s : Session.findAll(Session.class)){
+            if (s.getSid() == sessionid){
+                session = s;
+                break;
+            }
+        }
+        return session;
+    }
 
     public Session getActiveSession(){
         return mActiveSession;
@@ -79,13 +115,12 @@ public class Sessions {
         return DataSupport.findAll(Session.class, ids);
     }
 
-    public Session hasSession(User originatorId, List<User> participants){
+    public Session findSession(String originatorUid, List<String> receivers){
         Session sess = null;
-        Log.v(TAG, "look up: session");
         // FIXME: 18-3-18 : Here is very performance defect!!!
         List<Session> list = DataSupport.findAll(Session.class);
         for (Session s : list){
-            if((s != null) && (s.existed(originatorId, participants))){
+            if(s.has(originatorUid, receivers)){
                 sess = s;
                 Log.v(TAG, "found old session");
                 break;
@@ -96,16 +131,37 @@ public class Sessions {
 
 
 /* ********************************************************************************************** */
+    public List<Packet> getAllMessages(){
+        return Packet.findAll(Packet.class);
+    }
 
-    public Message getLastMessage(long sessionId){
-        Message m = null;
-        List<Message> msglist = DataSupport.select("sessiontime")
-                .where("sessiontime = ?", Long.toString(sessionId))
-                .find(Message.class);
-        if (!msglist.isEmpty()){
-            m = msglist.get(msglist.size()-1);
+    public List<Packet> getAllMessage(long sessionid){
+        List<Packet> pl = new ArrayList<>();
+        // FIXME: 18-3-20, we should use sql query sentence
+        for(Packet p : Packet.findAll(Packet.class)){
+            if (p.getSessionId() == sessionid){
+                pl.add(p);
+            }
         }
-        return m;
+
+        return pl;
+    }
+
+    // FIXME: 18-3-20, we should use sql query sentence
+    public Packet getLastMessage(long sessionId){
+        Packet packet = null;
+        List<Packet> pl = new ArrayList<>();
+        for(Packet p : Packet.findAll(Packet.class)){
+            if (p.getSessionId() == sessionId){
+                pl.add(p);
+            }
+        }
+
+        if (pl.size() > 0){
+            packet = pl.get(pl.size() - 1);
+        }
+
+        return packet;
     }
 
 /* ********************************************************************************************** */
@@ -114,22 +170,22 @@ public class Sessions {
         Log.v(TAG, "send text: " + text);
         try {
 
-            // wrap message
-            Message message = new Message();
-            message.setSessionTime(mActiveSession.getTime());
-            message.setUidFrom(originator.getUid());
-            message.setIncoming(false);
-            message.setType(Message.MESSAGE_TYPE_TEXT);
-            byte[] data = text.getBytes(Message.DEFAULT_ENCODING_FORMAT);
-            message.setLength(data.length);
-            message.setBody(data);
-            message.setDescription(text);
+            // wrap message packet
+            Packet p = new Packet();
+            p.setSessionId(mActiveSession.getSid());
+            p.setType(Packet.MESSAGE_TYPE_TEXT);
+            p.setIncoming(false);
+            byte[] data = text.getBytes(Packet.DEFAULT_ENCODING_FORMAT);
+            p.setMessageLength(data.length);
+            p.setMessageBody(data);
+            p.setDescription(text);
 
             // save message into message table
-            message.save();
+            p.save();
 
             // encode and send message
-            mMessenger.sendText(message.encode(), message.encode().length);
+            byte[] pb = p.encode();
+            mMessenger.sendText(pb, pb.length);
 
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();

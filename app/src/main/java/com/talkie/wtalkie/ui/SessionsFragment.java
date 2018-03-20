@@ -1,6 +1,7 @@
 package com.talkie.wtalkie.ui;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.app.Fragment;
 import android.util.Log;
@@ -11,11 +12,10 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
-import com.talkie.wtalkie.contacts.User;
-import com.talkie.wtalkie.contacts.Users;
-import com.talkie.wtalkie.sessions.Message;
+import com.talkie.wtalkie.contacts.UserManager;
+import com.talkie.wtalkie.sessions.Packet;
 import com.talkie.wtalkie.sessions.Session;
-import com.talkie.wtalkie.sessions.Sessions;
+import com.talkie.wtalkie.sessions.SessionManager;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -25,7 +25,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     private static final String TAG = "SessionsFragment";
 
     private MyBaseAdapter mAdapter;
-    private Sessions mSessions;
+    private SessionManager mSessionManager;
 
 
 /* ********************************************************************************************** */
@@ -41,7 +41,7 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        mSessions = Sessions.getInstance();
+        mSessionManager = SessionManager.getInstance();
     }
 
     @Override
@@ -76,6 +76,10 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v(TAG, "onItemClick: " + position);
+        Intent intent = new Intent(this.getActivity(), ChatActivity.class);
+        // FIXME: 18-3-20, database table index is bigger than list position
+        intent.putExtra("SessionIndex", position + 1);
+        startActivity(intent);
     }
 
 /* ********************************************************************************************** */
@@ -93,15 +97,15 @@ public class SessionsFragment extends Fragment implements AdapterView.OnItemClic
         Log.v(TAG, "refreshViews()");
 
         mAdapter.clearItemList();
-        for (Session s : mSessions.getSessionList()){
-            Log.v(TAG, "Session: " + s.encode());
+        for (Session s : mSessionManager.getSessionList()){
+            //Log.v(TAG, "Session: " + s.encode());
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
 
             // get originator
-            vh.setTextView(R.id.TXV_Originator, Users.findByUid(s.getUidFrom()).getNick());
+            vh.setTextView(R.id.TXV_Originator, UserManager.findByUid(s.getOriginator()).getNick());
 
             // get last message
-            Message msg = mSessions.getLastMessage(s.getTime());
+            Packet msg = mSessionManager.getLastMessage(s.getTime());
             if (msg != null) {
                 Log.d(TAG, "last message: " + msg.toJsonString());
                 vh.setTextView(R.id.TXV_LastMessage, msg.getDescription());

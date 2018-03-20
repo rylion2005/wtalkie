@@ -10,10 +10,11 @@ package com.talkie.wtalkie.sessions;
 **
 */
 
+import android.text.TextUtils;
 import android.util.Log;
 
 import com.google.gson.Gson;
-import com.talkie.wtalkie.contacts.User;
+import com.talkie.wtalkie.contacts.UserManager;
 
 import org.litepal.crud.DataSupport;
 
@@ -23,8 +24,8 @@ import java.util.List;
 /*
 ** ********************************************************************************
 **
-** METHODNAME
-**   ......
+** Session
+**   This is data class for database and socket bytes encoding with json
 **
 ** USAGE:
 **   ......
@@ -44,59 +45,40 @@ public class Session extends DataSupport{
     public static final int SESSION_ACTIVE = 0xDC;
 
     // data members
-    private long time;   // session main key
-    private String name; // session name
+    private long sid;    // session id, main key, same as time
+    private long time;   // session start time with milliseconds
     private int type;    // session type
     private int state;   // session active state
-    private String uidFrom;   // originator uid
-    private String uidTo;     // receiver uid only for p2p session
-    // receivers uid list
-    // private final List<User> participants = new ArrayList<>();
-    // message id list
-    // private final List<Message> messages = new ArrayList<>();
+    private String name; // session name
+    private String originator; // originator uid
+    private final List<String> receivers = new ArrayList<>(); // receivers uid
 
 
 /* ********************************************************************************************** */
 
     public Session(){
         Log.v(TAG, "new default session");
-        this.time = System.currentTimeMillis();
-        this.name = "Test Session";
-        this.type = SESSION_TYPE_UNKNOWN;
+
+        // auto generated, user can not change!
+        this.sid = System.currentTimeMillis();
+        this.time = sid;
+
         this.state = SESSION_NOT_INITIALIZED;
-        this.uidFrom = "";
-        this.uidTo = "";
+        this.originator = "default";
+        this.type = SESSION_TYPE_UNKNOWN;
+        this.name = "default";
     }
 
-    public Session(User originator, List<User> participants) {
-        Log.v(TAG, "new session: " + originator.getUid());
+    public Session(String originatorUid, List<String> receivers) {
+        Log.v(TAG, "new session: " + originatorUid);
 
         // session time and state
-        this.time = System.currentTimeMillis();
-        this.state = SESSION_ACTIVE;
-
-        this.uidFrom = originator.getUid();
-        //this.participants.addAll(participants);
-
-        // session type and session name
-        StringBuilder sb = new StringBuilder();
-        if(participants.size() > 1){
-            this.type = SESSION_TYPE_GROUP;
-            sb.append(participants.get(0).getNick());
-            sb.append(",");
-            sb.append(participants.get(1).getNick());
-            sb.append("...");
-            this.uidTo = "";
-        } else if (participants.size() > 0){
-            this.type = SESSION_TYPE_P2P;
-            sb.append(participants.get(0).getNick());
-            this.uidTo = participants.get(0).getUid();
-        } else {
-            this.type = SESSION_TYPE_UNKNOWN;
-            sb.append("error receivers !!!");
-            this.uidTo = "";
-        }
-        this.name = sb.toString();
+        this.sid = System.currentTimeMillis();
+        this.time = sid;
+        this.state = SESSION_INACTIVE;
+        this.originator = originatorUid;
+        this.receivers.addAll(receivers);
+        buildNameAndType(receivers);
     }
 
     public static Session decode(String jsonStr){
@@ -104,31 +86,39 @@ public class Session extends DataSupport{
         return gson.fromJson(jsonStr, Session.class);
     }
 
-
 /* ********************************************************************************************** */
 
-    public boolean existed(User originator, List<User> participants){
+    // FIXME: 18-3-20, optimize by database sql sentence
+    public boolean has(String uid, List<String> receivers){
         boolean existed = false;
 
-        if ((originator == null) || (participants == null)){
+        if (TextUtils.isEmpty(uid) || receivers == null || receivers.isEmpty()){
+            Log.e(TAG, "parameter has null or empty!");
             return false;
         }
 
-        if (this.uidFrom == null){
+        if (!this.originator.equals(uid)){
             return false;
         }
 
-        if (!originator.getUid().equals(this.uidFrom)){
+        if (this.receivers.size() != receivers.size()){
             return false;
         }
 
-        if (participants.size() > 1){
-            return true;
-        }
+        for (String r : receivers){
+            int count = 0;
+            for (String now : this.receivers){
+                count++;
+                if (r.equals(now)) {
+                    existed = true;
+                    break;
+                } else {
+                    existed = false;
+                }
+            }
 
-        if (participants.size() == 1){
-            if (participants.get(0).getUid().equals(this.uidTo)){
-                existed = true;
+            if (count >= this.receivers.size() && !existed){
+                break;
             }
         }
 
@@ -140,7 +130,39 @@ public class Session extends DataSupport{
         return gson.toJson(this, Session.class);
     }
 
+    public void dump(){
+        Log.v(TAG, encode());
+    }
+
 /* ********************************************************************************************** */
+
+    private void buildNameAndType(List<String> uids){
+        StringBuilder sb = new StringBuilder();
+        if(uids.size() > 1){
+            this.type = SESSION_TYPE_GROUP;
+            sb.append(UserManager.findByUid(uids.get(0)).getNick());
+            sb.append(",");
+            sb.append(UserManager.findByUid(uids.get(1)).getNick());
+            sb.append("...");
+        } else if (receivers.size() > 0){
+            this.type = SESSION_TYPE_P2P;
+            sb.append(UserManager.findByUid(uids.get(0)).getNick());
+        } else {
+            this.type = SESSION_TYPE_UNKNOWN;
+            sb.append("error receivers !!!");
+        }
+        this.name = sb.toString();
+    }
+
+/* ********************************************************************************************** */
+
+    public long getSid() {
+        return sid;
+    }
+
+    public long getTime() {
+        return time;
+    }
 
     public String getName() {
         return name;
@@ -148,15 +170,6 @@ public class Session extends DataSupport{
 
     public void setName(String name) {
         this.name = name;
-    }
-
-
-    public long getTime() {
-        return time;
-    }
-
-    public void setTime(long time) {
-        this.time = time;
     }
 
     public int getType() {
@@ -175,23 +188,19 @@ public class Session extends DataSupport{
         this.state = state;
     }
 
-    public String getUidFrom() {
-        return uidFrom;
+    public String getOriginator() {
+        return originator;
     }
 
-    public void setUidFrom(String uidFrom) {
-        this.uidFrom = uidFrom;
+    public void setOriginator(String originator) {
+        this.originator = originator;
     }
 
-    public String getUidTo() {
-        return uidTo;
+    public List<String> getReceivers() {
+        return receivers;
     }
 
-    public void setUidTo(String uidTo) {
-        this.uidTo = uidTo;
-    }
-
-    public void dump(){
-        Log.v(TAG, encode());
+    public void setReceivers(List<String> receivers) {
+        this.receivers.addAll(receivers);
     }
 }

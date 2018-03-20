@@ -17,12 +17,12 @@ import com.talkie.wtalkie.audio.Recorder;
 import com.talkie.wtalkie.audio.Tracker;
 import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
-import com.talkie.wtalkie.contacts.Users;
-import com.talkie.wtalkie.sessions.Sessions;
+import com.talkie.wtalkie.contacts.UserManager;
+import com.talkie.wtalkie.sessions.SessionManager;
 import com.talkie.wtalkie.sockets.Connector;
 import com.talkie.wtalkie.sockets.Streamer;
 
-import java.io.FileInputStream;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -39,7 +39,7 @@ public class MyService extends Service {
 
     private final Connector mConnector = new Connector();
     private final Streamer mStreamer = Streamer.getInstance();
-    private final Users mUsers = Users.getInstance();
+    private final UserManager mUserManager = UserManager.getInstance();
     private final Recorder mRecorder = Recorder.getInstance();
     private final Tracker mTracker = Tracker.getInstance();
     private final List<ConnectivityCallback> mCallbacks = new ArrayList<>();
@@ -105,13 +105,13 @@ public class MyService extends Service {
 
 /* ********************************************************************************************** */
 
-    public void register(ConnectivityCallback cc, Users.UserChangeCallback uc){
+    public void register(ConnectivityCallback cc, UserManager.UserChangeCallback uc){
         if (cc != null){
             mCallbacks.add(cc);
         }
 
         if (uc != null){
-            mUsers.register(uc);
+            mUserManager.register(uc);
         }
     }
 
@@ -125,7 +125,7 @@ public class MyService extends Service {
         mRecorder.register(scb);
         mStreamer.register(scb);
 
-        Sessions.getInstance();
+        SessionManager.getInstance();
 
         Myself.makeMyself(this.getApplicationContext());
         registerActions();
@@ -164,7 +164,7 @@ public class MyService extends Service {
             e.printStackTrace();
         }
 
-        mUsers.updateState();
+        mUserManager.updateState();
     }
 
 
@@ -220,7 +220,7 @@ public class MyService extends Service {
             try {
                 String s = new String(data, 0, length, "UTF-8");
                 Log.v(TAG, "Incoming: " + s);
-                mUsers.update(data, length);
+                mUserManager.update(data, length);
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }

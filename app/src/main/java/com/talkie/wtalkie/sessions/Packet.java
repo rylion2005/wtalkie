@@ -10,26 +10,23 @@ package com.talkie.wtalkie.sessions;
 **
 */
 import android.util.Log;
-
 import com.google.gson.Gson;
-import com.talkie.wtalkie.global.GlobalConstants;
-
 import org.litepal.crud.DataSupport;
 
 
 /*
 ** ********************************************************************************
 **
-** METHODNAME
-**   ......
+** Packet
+**   Message packet class
 **
 ** USAGE:
 **   ......
 **
 ** ********************************************************************************
 */
-public class Message extends DataSupport {
-    private static final String TAG = "Message";
+public class Packet extends DataSupport {
+    private static final String TAG = "Packet";
 
     public static final int MAX_FILE_HEAD_LENGTH = 1024;
     public static final int MAX_MESSAGE_LENGTH = 1024;
@@ -47,86 +44,80 @@ public class Message extends DataSupport {
     public static final int MESSAGE_TYPE_FILE_VIDEO = 0xAAE6;
 
     // relation database key
-    private long time;          // message main key
-    private long sessionTime;   // session main key
-    private String uidFrom;     // originator uid, User main key
-    private String uidTo;       // receiver uid, User main key
+    private long pid;       // packet id, main key, same as time
+    private long sessionId; // session sid, session main key
 
     // meta data
+    private long time;
     private boolean isIncoming; // if it is a incoming message
     private int type;           // message type
     private String description; // message summary description
     private int fileSize;       // file size only for file message
+    private String filePath;    // file path only for file message
     private String fileName;    // file name only for file message
-    private int length;         // byte message length
-    private byte[] body = new byte[MAX_MESSAGE_LENGTH]; // byte message body
+    private int messageLength;  // byte message length
+    private byte[] messageBody; // byte message body
 
 /* ********************************************************************************************** */
 
-    public Message() {
-        Log.d(TAG, "new default message");
-        this.time = System.currentTimeMillis();
-        this.sessionTime = 0;
-        this.uidFrom = "default";
-        this.uidTo   = "default";
+    public Packet() {
+        Log.d(TAG, "new default Packet");
+        // user can not change!
+        this.pid = System.currentTimeMillis();
+        this.time = pid;
+
+        this.sessionId = 0;
         this.description = "default";
-        this.isIncoming   = false;
+        this.isIncoming = false;
         this.type = MESSAGE_TYPE_UNKNOWN;
         this.fileSize = 0;
+        this.filePath = "default";
         this.fileName = "default";
-        this.length = 0;
+        this.messageLength = 0;
+        this.messageBody = null;
     }
 
-    public static Message decode(byte[] bytes, int length) {
+    public static Packet decode(byte[] bytes, int length) {
         Gson g = new Gson();
-        return g.fromJson(new String(bytes, 0, length), Message.class);
+        return g.fromJson(new String(bytes, 0, length), Packet.class);
     }
 
 /* ********************************************************************************************** */
 
     public byte[] encode() {
-        Gson gson = new Gson();
-        return gson.toJson(this, Message.class).getBytes();
+        return toJsonString().getBytes();
     }
 
     public String toJsonString(){
         Gson gson = new Gson();
-        return gson.toJson(this, Message.class);
+        return gson.toJson(this, Packet.class);
     }
 
 
 /* ********************************************************************************************** */
 
+    public long getPid() {
+        return pid;
+    }
+
     public long getTime() {
         return time;
     }
 
-    public void setTime(long time) {
-        this.time = time;
+    public long getSessionId() {
+        return sessionId;
     }
 
-    public long getSessionTime() {
-        return sessionTime;
+    public void setSessionId(long sessionId) {
+        this.sessionId = sessionId;
     }
 
-    public void setSessionTime(long sessionTime) {
-        this.sessionTime = sessionTime;
+    public String getFilePath() {
+        return filePath;
     }
 
-    public String getUidFrom() {
-        return uidFrom;
-    }
-
-    public void setUidFrom(String uidFrom) {
-        this.uidFrom = uidFrom;
-    }
-
-    public String getUidTo() {
-        return uidTo;
-    }
-
-    public void setUidTo(String uidTo) {
-        this.uidTo = uidTo;
+    public void setFilePath(String filePath) {
+        this.filePath = filePath;
     }
 
     public String getDescription() {
@@ -173,19 +164,19 @@ public class Message extends DataSupport {
         this.fileName = fileName;
     }
 
-    public int getLength() {
-        return length;
+    public int getMessageLength() {
+        return messageLength;
     }
 
-    public void setLength(int length) {
-        this.length = length;
+    public void setMessageLength(int messageLength) {
+        this.messageLength = messageLength;
     }
 
-    public byte[] getBody() {
-        return body;
+    public byte[] getMessageBody() {
+        return messageBody;
     }
 
-    public void setBody(byte[] body) {
-        this.body = body.clone();
+    public void setMessageBody(byte[] messageBody) {
+        this.messageBody = messageBody;
     }
 }

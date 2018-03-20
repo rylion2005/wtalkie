@@ -24,19 +24,19 @@ import java.util.List;
 **
 ** *************************************************************************************************
 */
-public class Users {
+public class UserManager {
     private static final String TAG = "Users";
-    private static Users mInstance;
+    private static UserManager mInstance;
     private static final long OFFLINE_MS = 20000;
     private final List<UserChangeCallback> mCallbacks = new ArrayList<>();
 
 /* ********************************************************************************************** */
 
-    private Users(){}
+    private UserManager(){}
 
-    public static Users getInstance(){
+    public static UserManager getInstance(){
         if (mInstance == null){
-            mInstance = new Users();
+            mInstance = new UserManager();
         }
         return mInstance;
     }
@@ -57,6 +57,7 @@ public class Users {
         return User.find(User.class, index);
     }
 
+    // FIXME: 18-3-20, optimize by sql
     public static User findByUid(String uid){
         Log.d(TAG, "findByUid: " + uid);
         User user = null;

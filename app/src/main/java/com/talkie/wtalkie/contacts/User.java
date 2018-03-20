@@ -44,6 +44,11 @@ public class User extends DataSupport {
         return g.fromJson(json, User.class);
     }
 
+    public String toJsonString(){
+        Gson g = new Gson();
+        return g.toJson(this, User.class);
+    }
+
 /* ********************************************************************************************** */
 /*
     public byte[] getAvatar() {
@@ -113,8 +118,4 @@ public class User extends DataSupport {
 
 /* ********************************************************************************************** */
 
-    public String toJsonString(){
-        Gson g = new Gson();
-        return g.toJson(this, User.class);
-    }
 }
