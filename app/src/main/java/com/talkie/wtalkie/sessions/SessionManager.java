@@ -42,21 +42,33 @@ public class SessionManager {
 
 /* ********************************************************************************************** */
 
-    public Session buildSession(String originatorUid, long[] mReceiverIndexes){
-        Log.v(TAG, "build session: from=" + originatorUid);
-        List<String> uids = new ArrayList<>();
-        for (User u : User.findAll(User.class, mReceiverIndexes)){
-            uids.add(u.getUid());
+    public Session buildSession(String originatorUid, int... indexes){
+        Log.v(TAG, "build session: receivers=" + indexes.length);
+
+        if (indexes == null || indexes.length == 0){
+            return null;
         }
 
-        mActiveSession = findSession(originatorUid, uids);
+        // find receivers from user table and build receiver uid list
+        List<String> receivers = new ArrayList<>();
+        List<User> users = User.findAll(User.class);
+        for (int ii = 0; ii < indexes.length; ii++){
+            receivers.add(users.get(indexes[ii]).getUid());
+        }
+        Log.v(TAG, "uids: " + receivers.size());
+
+        // find session from session table
+        mActiveSession = findSession(originatorUid, receivers);
         if (mActiveSession == null){
-            mActiveSession = new Session(originatorUid, uids);
+            mActiveSession = new Session(originatorUid, receivers);
         }
         mActiveSession.setState(Session.SESSION_ACTIVE);
-        mActiveSession.saveOrUpdate("sid = ?",
-                Long.toString(mActiveSession.getSid()));
+
+        // save into session table
+        mActiveSession.saveOrUpdate("sid = ?", Long.toString(mActiveSession.getSid()));
+        Log.v(TAG, ">>>>>>>>>> ");
         mActiveSession.dump();
+        Log.v(TAG, "~~~~~~~~~~ ");
         return mActiveSession;
     }
 
@@ -78,6 +90,24 @@ public class SessionManager {
                 break;
             }
         }
+        return session;
+    }
+
+    public Session findTemporarySessionByIndex(int index){
+        Session session = null;
+        List<Session> sessions = new ArrayList<>();
+
+        List<Session> allSessions = Session.findAll(Session.class);
+        // FIXME: 18-3-20, optimize by sql sentence
+        for (Session s : allSessions){
+            if (s.getType() == Session.SESSION_TYPE_TEMPORARY){
+                sessions.add(s);
+            }
+        }
+
+        Log.v(TAG, "all: " + allSessions.size());
+        Log.v(TAG, "temporary: " + sessions.size());
+        session = sessions.get(index);
         return session;
     }
 
@@ -117,9 +147,13 @@ public class SessionManager {
     }
 
     public void deleteSession(int index){
-        Session ss = Session.find(Session.class, index);
+        Log.v(TAG, "delete session: " + index);
+
+        // find session
+        Session ss = findTemporarySessionByIndex(index);
+        ss.dump();
         // delete session
-        Session.delete(Session.class, index);
+        Session.deleteAll(Session.class, "sid = ?", Long.toString(ss.getSid()));
 
         // delete all messages in this session
         deleteMessages(ss.getSid());

@@ -12,12 +12,9 @@ package com.talkie.wtalkie.sessions;
 
 import android.text.TextUtils;
 import android.util.Log;
-
 import com.google.gson.Gson;
 import com.talkie.wtalkie.contacts.UserManager;
-
 import org.litepal.crud.DataSupport;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,8 +33,11 @@ public class Session extends DataSupport{
     private static final String TAG = "Session";
     // type
     public static final int SESSION_TYPE_UNKNOWN = 0xD0;
-    public static final int SESSION_TYPE_P2P = 0xD1;
-    public static final int SESSION_TYPE_GROUP = 0xD2;
+    public static final int SESSION_TYPE_CHAT_ROOM = 0xD1;
+    public static final int SESSION_TYPE_TALK_CHANNEL = 0xD2;
+    public static final int SESSION_TYPE_TEMPORARY = 0xD3;
+    //public static final int SESSION_TYPE_TEMP_P2P = 0xD4;
+    //public static final int SESSION_TYPE_TEMP_GROUP = 0xD5;
 
     // state
     public static final int SESSION_NOT_INITIALIZED = 0xDA;
@@ -139,21 +139,22 @@ public class Session extends DataSupport{
 /* ********************************************************************************************** */
 
     private void buildNameAndType(List<String> uids){
+        Log.v(TAG, "buildNameAndType: " + uids.size());
+        if (uids == null || uids.size() == 0){
+            Log.v(TAG, "no any receiver !!!");
+            return;
+        }
+
         StringBuilder sb = new StringBuilder();
-        if(uids.size() > 1){
-            this.type = SESSION_TYPE_GROUP;
-            sb.append(UserManager.findByUid(uids.get(0)).getNick());
-            sb.append(",");
-            sb.append(UserManager.findByUid(uids.get(1)).getNick());
-            sb.append("...");
-        } else if (receivers.size() > 0){
-            this.type = SESSION_TYPE_P2P;
-            sb.append(UserManager.findByUid(uids.get(0)).getNick());
-        } else {
-            this.type = SESSION_TYPE_UNKNOWN;
-            sb.append("error receivers !!!");
+        int size = uids.size();
+        for (int i = 0; i < size; i++){
+            sb.append(UserManager.findByUid(uids.get(i)).getNick());
+            if (i < size -1){
+                sb.append(",");
+            }
         }
         this.name = sb.toString();
+        this.type = SESSION_TYPE_TEMPORARY;
     }
 
 /* ********************************************************************************************** */

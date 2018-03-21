@@ -11,9 +11,11 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.UserManager;
 import com.talkie.wtalkie.sessions.Packet;
 import com.talkie.wtalkie.sessions.Session;
@@ -25,7 +27,8 @@ import java.util.Date;
 
 public class SessionsFragment extends Fragment
         implements AdapterView.OnItemClickListener,
-        AdapterView.OnItemLongClickListener {
+        AdapterView.OnItemLongClickListener,
+        View.OnClickListener{
     private static final String TAG = "SessionsFragment";
 
     private MyBaseAdapter mAdapter;
@@ -37,10 +40,6 @@ public class SessionsFragment extends Fragment
 /* ********************************************************************************************** */
 
     public SessionsFragment() { }
-
-    public static SessionsFragment newInstance() {
-        return new SessionsFragment();
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -78,11 +77,57 @@ public class SessionsFragment extends Fragment
     }
 
     @Override
+    public void onClick(View v) {
+        Log.v(TAG, "onClick: " + v.toString());
+
+        Intent intent;
+        Bundle b = new Bundle();
+        switch (v.getId()){
+            case R.id.LNL_ChatRoomA:
+                intent = new Intent(this.getActivity(), ChatActivity.class);
+                b.putInt("Session", Session.SESSION_TYPE_CHAT_ROOM);
+                b.putString("RoomName", "ChatRoomA");
+                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
+                intent.putExtras(b);
+                startActivity(intent);
+                break;
+            case R.id.LNL_ChatRoomB:
+                intent = new Intent(this.getActivity(), ChatActivity.class);
+                b.putInt("Session", Session.SESSION_TYPE_CHAT_ROOM);
+                b.putString("RoomName", "ChatRoomB");
+                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
+                intent.putExtras(b);
+                startActivity(intent);
+                break;
+            case R.id.LNL_TalkChannelA:
+                intent = new Intent(this.getActivity(), ChatActivity.class);
+                b.putInt("Session", Session.SESSION_TYPE_TALK_CHANNEL);
+                b.putString("ChannelName", "TalkChannelA");
+                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
+                intent.putExtras(b);
+                startActivity(intent);
+                break;
+            case R.id.LNL_TalkChannelB:
+                intent = new Intent(this.getActivity(), ChatActivity.class);
+                b.putInt("Session", Session.SESSION_TYPE_TALK_CHANNEL);
+                b.putString("ChannelName", "TalkChannelB");
+                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
+                intent.putExtras(b);
+                startActivity(intent);
+                break;
+            default:
+                break;
+        }
+    }
+
+    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v(TAG, "onItemClick: " + position);
         Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-        // FIXME: 18-3-20, database table index is bigger than list position
-        intent.putExtra("SessionIndex", position + 1);
+        Bundle b = new Bundle();
+        b.putInt("SessionType", Session.SESSION_TYPE_TEMPORARY);
+        b.putInt("SessionListIndex", position);
+        intent.putExtras(b);
         startActivity(intent);
     }
 
@@ -111,11 +156,22 @@ public class SessionsFragment extends Fragment
 
 
     private void initViews(View rootView){
+
+        LinearLayout chatroomA = rootView.findViewById(R.id.LNL_ChatRoomA);
+        LinearLayout chatroomB = rootView.findViewById(R.id.LNL_ChatRoomB);
+        LinearLayout talkChannelA = rootView.findViewById(R.id.LNL_TalkChannelA);
+        LinearLayout talkChannelB = rootView.findViewById(R.id.LNL_TalkChannelB);
+        chatroomA.setOnClickListener(this);
+        chatroomB.setOnClickListener(this);
+        talkChannelA.setOnClickListener(this);
+        talkChannelB.setOnClickListener(this);
+
         mAdapter = new MyBaseAdapter(this.getActivity(), R.layout.session_list);
         ListView lsv = rootView.findViewById(R.id.LSV_Sessions);
         lsv.setAdapter(mAdapter);
         lsv.setOnItemClickListener(this);
         lsv.setOnItemLongClickListener(this);
+
         refreshViews();
     }
 
@@ -123,8 +179,9 @@ public class SessionsFragment extends Fragment
         Log.v(TAG, "refreshViews()");
 
         mAdapter.clearItemList();
+        Log.v(TAG, "Session List: " + mSessionManager.getSessionList());
         for (Session s : mSessionManager.getSessionList()){
-            //Log.v(TAG, "Session: " + s.encode());
+            Log.v(TAG, "Session: " + s.encode());
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
 
             // get originator

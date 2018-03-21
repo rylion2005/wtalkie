@@ -154,25 +154,46 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
     private void init() {
         Log.v(TAG, "init: ");
+        handleIntent();
+    }
+
+    private void handleIntent(){
         mSessionManager = SessionManager.getInstance();
+        try {
+            Bundle b = getIntent().getExtras();
+            int sessionType = b.getInt("SessionType");
+            switch (sessionType) {
+                case Session.SESSION_TYPE_CHAT_ROOM:
+                    String roomName = b.getString("RoomName");
+                    if (roomName.equals("ChatRoomA")) {
 
-        Intent intent = getIntent();
-        long[] userIds = intent.getLongArrayExtra("UserIds");
-        int position = intent.getIntExtra("SessionIndex", -1);
-        Log.v(TAG, "uer ids: " + userIds);
-        Log.v(TAG, "position: " + position);
+                    } else if (roomName.equals("ChatRoomB")) {
 
-        // call from contacts fragment
-        if (userIds != null && userIds.length > 0){
-            mSessionManager.buildSession(Myself.fromMyself(this).getUid(),userIds);
+                    } else {
+                        Log.v(TAG, "unknown room: " + roomName);
+                    }
+                    break;
+                case Session.SESSION_TYPE_TALK_CHANNEL:
+                    String channelName = b.getString("ChannelName");
+                    if (channelName.equals("ChannelNameA")) {
+
+                    } else if (channelName.equals("ChannelNameB")) {
+
+                    } else {
+                        Log.v(TAG, "unknown room: " + channelName);
+                    }
+                    break;
+                case Session.SESSION_TYPE_TEMPORARY:
+                    String originatorUid = b.getString("OriginatorUid");
+                    int[] receivers = b.getIntArray("ReceiverListIndexes");
+                    mSessionManager.buildSession(originatorUid, receivers);
+                    break;
+                default:
+                    break;
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
-
-        // call from session fragment
-        if (position > -1){
-            mSessionManager.buildSession(position);
-        }
-
-        Log.v(TAG, "active session: " + mSessionManager.getActiveSession().getSid());
     }
 
     private void initViews() {

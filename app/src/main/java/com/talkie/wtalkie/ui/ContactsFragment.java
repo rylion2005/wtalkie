@@ -17,8 +17,12 @@ import android.widget.CheckBox;
 import android.widget.ListView;
 
 import com.talkie.wtalkie.R;
+import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.contacts.UserManager;
+import com.talkie.wtalkie.sessions.Session;
+
+import java.util.List;
 
 
 public class ContactsFragment extends Fragment implements AdapterView.OnItemClickListener{
@@ -30,8 +34,8 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     private boolean mChecked = false;
     private MyBaseAdapter mAdapter;
 
-    private long[] mUserIds;
-    private String[] mUids;
+    private int mLength = 0;
+    private int[] mSelectedPositions;
 
 
 /* ********************************************************************************************** */
@@ -92,12 +96,14 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
         Log.v(TAG, "onItemClick: " + position);
         // state machine
         if (mState == SELECT_STATE_IDLE){
+
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
-            mUids = new String[1];
-
-            MyBaseAdapter.ViewHolder vh = (MyBaseAdapter.ViewHolder) mAdapter.getItem(position);
-
-            intent.putExtra("UserIds", mUids);
+            Bundle b = new Bundle();
+            int[] positions = {position};
+            b.putInt("SessionType", Session.SESSION_TYPE_TEMPORARY);
+            b.putString("OriginatorUid", Myself.fromMyself(getActivity()).getUid());
+            b.putIntArray("ReceiverListIndexes", positions);
+            intent.putExtras(b);
             startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK
             CheckBox cb = view.findViewById(R.id.CHB_SelectContacts);
@@ -116,17 +122,17 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     public boolean onOptionsItemSelected(MenuItem item) {
         // switch select state between SELECT_STATE_IDLE and SELECT_STATE_GROUP_TALK
         if (item.getItemId() == R.id.SelectMore) {
-
+            /*
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
             int count = UserManager.getUsersCount();
-            mUserIds = new long[count];
+            mUserIds = new int[count];
             for (int i = 0; i < count; i++){
                 mUserIds[i] = i + 1;
             }
             intent.putExtra("UserIds", mUserIds);
             startActivity(intent);
 
-            /*
+
             if (mState == SELECT_STATE_IDLE){
                 mState = SELECT_STATE_GROUP_TALK;
                 item.setTitle("Originate Talk");
