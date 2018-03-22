@@ -94,9 +94,7 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         Log.v(TAG, "onItemClick: " + position);
-        // state machine
         if (mState == SELECT_STATE_IDLE){
-
             Intent intent = new Intent(this.getActivity(), ChatActivity.class);
             Bundle b = new Bundle();
             int[] positions = {position};

@@ -105,7 +105,6 @@ public class Session extends DataSupport{
 
 /* ********************************************************************************************** */
 
-    // FIXME: 18-3-20, optimize by database sql sentence
     public boolean has(String uid, List<String> receivers){
         boolean existed = false;
 

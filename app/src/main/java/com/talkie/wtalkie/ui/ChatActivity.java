@@ -67,6 +67,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
 
     private final UiHandler mHandler = new UiHandler();
     private final List<String> mQueue = new ArrayList<>();
+    private final MessageListener mListener = new MessageListener();
 
 
 /* ********************************************************************************************** */
@@ -160,7 +161,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private void init() {
         Log.v(TAG, "init: ");
         handleIntent();
-        mSessionManager.register(new MessageListener());
+        mSessionManager.register(mListener);
     }
 
     private void handleIntent(){
@@ -245,7 +246,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     }
 
     private void refreshIncomingMessages(){
-        Log.v(TAG, "refreshMessages");
+        Log.v(TAG, "refreshIncomingMessages");
         mActiveSession = mSessionManager.getActiveSession();
         if (mActiveSession == null){
             Log.e(TAG, "No active session !");
