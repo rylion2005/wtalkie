@@ -49,7 +49,8 @@ public class Packet extends DataSupport {
 
     // meta data
     private long time;
-    private boolean isIncoming; // if it is a incoming message
+    private int incoming;     // 0 - incoming, 1- outgoing
+    private int unread;         // unread status: 0 - read; 1 - unread
     private int type;           // message type
     private String description; // message summary description
     private int fileSize;       // file size only for file message
@@ -68,7 +69,8 @@ public class Packet extends DataSupport {
 
         this.sid = 0;
         this.description = "default";
-        this.isIncoming = false;
+        this.incoming = 0;
+        this.unread = 1;
         this.type = MESSAGE_TYPE_UNKNOWN;
         this.fileSize = 0;
         this.filePath = "default";
@@ -79,7 +81,27 @@ public class Packet extends DataSupport {
 
     public static Packet decode(byte[] bytes, int length) {
         Gson g = new Gson();
-        return g.fromJson(new String(bytes, 0, length), Packet.class);
+        /*
+        *  there are more than packet member data in this source packet,
+        *  it will affect new packet structure;
+        */
+        Packet src = g.fromJson(new String(bytes, 0, length), Packet.class);
+
+        Packet p = new Packet();
+        p.setSid(src.getSid());
+        p.setPid(src.getPid());
+        p.setType(src.getType());
+        p.setTime(src.getTime());
+        p.setFileName(src.getFileName());
+        p.setFilePath(src.getFilePath());
+        p.setFileSize(src.getFileSize());
+        p.setMessageLength(src.getMessageLength());
+        p.setDescription(src.getDescription());
+        p.setMessageBody(src.getMessageBody());
+        p.setIncoming(src.getIncoming());
+        p.setUnread(src.getUnread());
+
+        return p;
     }
 
 /* ********************************************************************************************** */
@@ -120,6 +142,22 @@ public class Packet extends DataSupport {
         this.sid = sid;
     }
 
+    public int getUnread() {
+        return unread;
+    }
+
+    public void setUnread(int unread) {
+        this.unread = unread;
+    }
+
+    public int getIncoming() {
+        return incoming;
+    }
+
+    public void setIncoming(int incoming) {
+        this.incoming = incoming;
+    }
+
     public String getFilePath() {
         return filePath;
     }
@@ -138,14 +176,6 @@ public class Packet extends DataSupport {
         } else {
             this.description = description;
         }
-    }
-
-    public boolean isIncoming() {
-        return isIncoming;
-    }
-
-    public void setIncoming(boolean incoming) {
-        isIncoming = incoming;
     }
 
     public int getType() {

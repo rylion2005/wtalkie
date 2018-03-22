@@ -22,9 +22,9 @@ import com.talkie.wtalkie.contacts.Myself;
 import com.talkie.wtalkie.sessions.Packet;
 import com.talkie.wtalkie.sessions.Session;
 import com.talkie.wtalkie.sessions.SessionManager;
-import com.talkie.wtalkie.sockets.Messenger;
 
 import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.List;
 
 /*
@@ -64,9 +64,9 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     // Session information
     private SessionManager mSessionManager;
     private Session mActiveSession;
-    private long[] mSessionIds;
 
     private final UiHandler mHandler = new UiHandler();
+    private final List<String> mQueue = new ArrayList<>();
 
 
 /* ********************************************************************************************** */
@@ -160,6 +160,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
     private void init() {
         Log.v(TAG, "init: ");
         handleIntent();
+        mSessionManager.register(new MessageListener());
     }
 
     private void handleIntent(){
@@ -238,7 +239,27 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         for (Packet p : pl){
             Log.v(TAG, p.toJsonString());
             String message = new String(p.getMessageBody(), 0, p.getMessageLength());
-            showTextMessage(p.isIncoming(), message);
+            Boolean isIncoming = (p.getIncoming() == 1);
+            showTextMessage(isIncoming, message);
+        }
+    }
+
+    private void refreshIncomingMessages(){
+        Log.v(TAG, "refreshMessages");
+        mActiveSession = mSessionManager.getActiveSession();
+        if (mActiveSession == null){
+            Log.e(TAG, "No active session !");
+            return;
+        }
+
+        List<Packet> pl = mSessionManager.getUnreadMessages(mActiveSession.getSid());
+        Log.v(TAG, "unread message: " + pl.size());
+        for (Packet p : pl){
+            String message = new String(p.getMessageBody(), 0, p.getMessageLength());
+            Boolean isIncoming = (p.getIncoming() == 1);
+            showTextMessage(isIncoming, message);
+            p.setUnread(0);
+            p.saveOrUpdate("pid = ?", Long.toString(p.getSid()));
         }
     }
 
@@ -299,18 +320,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         public void handleMessage(Message msg) {
             switch(msg.what){
                 case MESSAGE_INCOMING:
-                    switch (msg.arg1) {
-                        case MESSAGE_TYPE_TEXT:
-                            try {
-                                String text = msg.getData().getString("Text");
-                                showTextMessage(true, text);
-                            } catch (NullPointerException e) {
-                                e.printStackTrace();
-                            }
-                            break;
-                        default:
-                            break;
-                    }
+                    refreshIncomingMessages();
                     break;
                 default:
                     break;
@@ -318,23 +328,11 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         }
     }
 
-    class MessageListener implements Messenger.MessageCallback{
+    class MessageListener implements SessionManager.OnMessageListener{
         @Override
-        public void onNewMessage(byte[] data, int length) {
-            Log.v(TAG, "onNewMessage: " + length);
-            try {
-                Message msg = new Message();
-                msg.what = MESSAGE_INCOMING;
-                msg.arg1 = MESSAGE_TYPE_TEXT;
-                Bundle b = new Bundle();
-                String text = new String(data, 0, length, "UTF-8");
-                Log.v(TAG, ": " + text);
-                b.putString("Text", text);
-                msg.setData(b);
-                mHandler.sendMessage(msg);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-            }
+        public void onNewMessage() {
+            Log.v(TAG, "onNewMessage");
+            mHandler.sendEmptyMessage(MESSAGE_INCOMING);
         }
     }
 }

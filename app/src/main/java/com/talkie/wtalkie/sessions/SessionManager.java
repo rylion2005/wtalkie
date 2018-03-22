@@ -5,7 +5,12 @@ import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.litepal.crud.DataSupport;
+
+import com.google.gson.Gson;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.sockets.Messenger;
 
@@ -30,6 +35,7 @@ public class SessionManager {
     private static SessionManager mInstance;
     private Session mActiveSession;
     private final Messenger mMessenger = Messenger.getInstance();
+    private final List<OnMessageListener> mListeners = new ArrayList<>();
 
 /* ********************************************************************************************** */
 
@@ -52,6 +58,12 @@ public class SessionManager {
             mInstance = new SessionManager();
         }
         return mInstance;
+    }
+
+    public void register(OnMessageListener listener){
+        if (listener != null){
+            mListeners.add(listener);
+        }
     }
 
 /* ********************************************************************************************** */
@@ -215,7 +227,14 @@ public class SessionManager {
         return pl;
     }
 
-    // FIXME: 18-3-20, we should use sql query sentence
+    public List<Packet> getUnreadMessages(long sid){
+        Log.v(TAG, "getUnreadMessages: " + sid);
+        List<Packet> pl = Packet.where("sid = ? and incoming = ? and unread = ?",
+                Long.toString(sid), "1", "1")
+                .find(Packet.class);
+        return pl;
+    }
+
     public Packet getLastMessage(long sid){
         Packet packet = null;
         List<Packet> pl = Packet.where("sid = ?", Long.toString(sid))
@@ -248,13 +267,14 @@ public class SessionManager {
             Packet p = new Packet();
             p.setSid(mActiveSession.getSid());
             p.setType(Packet.MESSAGE_TYPE_TEXT);
-            p.setIncoming(false);
+            p.setIncoming(0);
+            p.setUnread(1);
             byte[] data = text.getBytes(Packet.DEFAULT_ENCODING_FORMAT);
             p.setMessageLength(data.length);
             p.setMessageBody(data);
             p.setDescription(text);
-
-            // save message into message table
+            Log.v(TAG, ":S: " + p.toJsonString());
+            // save message into database table
             p.save();
 
             // encode and send message
@@ -278,6 +298,7 @@ public class SessionManager {
 /* ********************************************************************************************** */
 
     class MessageListener implements Messenger.MessageCallback{
+
         @Override
         public void onNewMessage(byte[] data, int length) {
             Log.v(TAG, "onNewMessage: " + length);
@@ -285,21 +306,24 @@ public class SessionManager {
                 return;
             }
 
-            // decode and save into database
-            //Message msg = Message.decode(data, length);
-            //msg.save();
+            // decode byte buffer
+            Packet p = Packet.decode(data, length);
+            p.setIncoming(1);
+            p.setUnread(1);
 
-            // decode message body
+            // save into database table
+            boolean saved = p.save();
 
-
-
-            // notify observer client
+            // notify clients
+            for (OnMessageListener l : mListeners){
+                l.onNewMessage();
+            }
         }
     }
 
 /* ********************************************************************************************** */
 
     public interface OnMessageListener{
-        void onTextMessage(int indexInDatabase);
+        void onNewMessage();
     }
 }
