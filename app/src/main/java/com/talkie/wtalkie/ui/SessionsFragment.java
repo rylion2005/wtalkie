@@ -13,10 +13,10 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.TextView;
 
 import com.talkie.wtalkie.R;
 import com.talkie.wtalkie.contacts.Myself;
-import com.talkie.wtalkie.contacts.UserManager;
 import com.talkie.wtalkie.sessions.Packet;
 import com.talkie.wtalkie.sessions.Session;
 import com.talkie.wtalkie.sessions.SessionManager;
@@ -84,33 +84,27 @@ public class SessionsFragment extends Fragment
         Bundle b = new Bundle();
         switch (v.getId()){
             case R.id.LNL_ChatRoomA:
-                intent = new Intent(this.getActivity(), ChatActivity.class);
-                b.putInt("Session", Session.SESSION_TYPE_CHAT_ROOM);
-                b.putString("RoomName", "ChatRoomA");
-                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
-                intent.putExtras(b);
-                startActivity(intent);
-                break;
             case R.id.LNL_ChatRoomB:
                 intent = new Intent(this.getActivity(), ChatActivity.class);
-                b.putInt("Session", Session.SESSION_TYPE_CHAT_ROOM);
-                b.putString("RoomName", "ChatRoomB");
+                b.putInt("SessionType", Session.SESSION_TYPE_CHAT_ROOM);
+                if (v.getId() == R.id.LNL_ChatRoomA) {
+                    b.putString("RoomName", "Chat Room A");
+                } else {
+                    b.putString("RoomName", "Chat Room B");
+                }
                 b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
                 intent.putExtras(b);
                 startActivity(intent);
                 break;
             case R.id.LNL_TalkChannelA:
-                intent = new Intent(this.getActivity(), ChatActivity.class);
-                b.putInt("Session", Session.SESSION_TYPE_TALK_CHANNEL);
-                b.putString("ChannelName", "TalkChannelA");
-                b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
-                intent.putExtras(b);
-                startActivity(intent);
-                break;
             case R.id.LNL_TalkChannelB:
                 intent = new Intent(this.getActivity(), ChatActivity.class);
-                b.putInt("Session", Session.SESSION_TYPE_TALK_CHANNEL);
-                b.putString("ChannelName", "TalkChannelB");
+                b.putInt("SessionType", Session.SESSION_TYPE_TALK_CHANNEL);
+                if (v.getId() == R.id.LNL_TalkChannelA) {
+                    b.putString("ChannelName", "Talk Channel A");
+                } else {
+                    b.putString("ChannelName", "Talk Channel B");
+                }
                 b.putString("Uid", Myself.fromMyself(this.getActivity()).getUid());
                 intent.putExtras(b);
                 startActivity(intent);
@@ -126,7 +120,9 @@ public class SessionsFragment extends Fragment
         Intent intent = new Intent(this.getActivity(), ChatActivity.class);
         Bundle b = new Bundle();
         b.putInt("SessionType", Session.SESSION_TYPE_TEMPORARY);
-        b.putInt("SessionListIndex", position);
+        MyBaseAdapter.ViewHolder vh = (MyBaseAdapter.ViewHolder) mAdapter.getItem(position);
+        String name = ((TextView) (vh.getView(R.id.TXV_SessionName))).getText().toString();
+        b.putString("SessionName", name);
         intent.putExtras(b);
         startActivity(intent);
     }
@@ -179,13 +175,13 @@ public class SessionsFragment extends Fragment
         Log.v(TAG, "refreshViews()");
 
         mAdapter.clearItemList();
-        Log.v(TAG, "Session List: " + mSessionManager.getSessionList());
-        for (Session s : mSessionManager.getSessionList()){
+        Log.v(TAG, "Session List: " + mSessionManager.getSessionList(Session.SESSION_TYPE_TEMPORARY));
+        for (Session s : mSessionManager.getSessionList(Session.SESSION_TYPE_TEMPORARY)){
             Log.v(TAG, "Session: " + s.encode());
             MyBaseAdapter.ViewHolder vh = mAdapter.createHolder();
 
             // get originator
-            vh.setTextView(R.id.TXV_Originator, UserManager.findByUid(s.getOriginator()).getNick());
+            vh.setTextView(R.id.TXV_SessionName, s.getName());
 
             // get last message
             Packet msg = mSessionManager.getLastMessage(s.getTime());

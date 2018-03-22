@@ -34,7 +34,7 @@ public class Packet extends DataSupport {
     public static final String DEFAULT_ENCODING_FORMAT = "UTF-8";
 
     public static final int MESSAGE_TYPE_UNKNOWN = 0xAA00;
-    public static final int MESSAGE_TYPE_SESSION_INFO = 0xAADD;
+    public static final int MESSAGE_TYPE_SESSION = 0xAADD;
     public static final int MESSAGE_TYPE_BYTE = 0xAAE0;
     public static final int MESSAGE_TYPE_EMOJI = 0xAAE1;
     public static final int MESSAGE_TYPE_TEXT = 0xAAE2;
@@ -45,7 +45,7 @@ public class Packet extends DataSupport {
 
     // relation database key
     private long pid;       // packet id, main key, same as time
-    private long sessionId; // session sid, session main key
+    private long sid; // session sid, session main key
 
     // meta data
     private long time;
@@ -66,7 +66,7 @@ public class Packet extends DataSupport {
         this.pid = System.currentTimeMillis();
         this.time = pid;
 
-        this.sessionId = 0;
+        this.sid = 0;
         this.description = "default";
         this.isIncoming = false;
         this.type = MESSAGE_TYPE_UNKNOWN;
@@ -100,16 +100,24 @@ public class Packet extends DataSupport {
         return pid;
     }
 
+    public void setPid(long pid) {
+        this.pid = pid;
+    }
+
+    public void setTime(long time) {
+        this.time = time;
+    }
+
     public long getTime() {
         return time;
     }
 
-    public long getSessionId() {
-        return sessionId;
+    public long getSid() {
+        return sid;
     }
 
-    public void setSessionId(long sessionId) {
-        this.sessionId = sessionId;
+    public void setSid(long sid) {
+        this.sid = sid;
     }
 
     public String getFilePath() {

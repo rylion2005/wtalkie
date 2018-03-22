@@ -1,7 +1,6 @@
 package com.talkie.wtalkie.sessions;
 
 
-import android.os.Message;
 import android.util.Log;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
@@ -23,6 +22,11 @@ import com.talkie.wtalkie.sockets.Messenger;
 public class SessionManager {
     private static final String TAG = "SessionManager";
 
+    public static final long CHAT_ROOM_A_ID = 99887766;
+    public static final long CHAT_ROOM_B_ID = 99887767;
+    public static final long TALK_CHANNEL_A_ID = 99887788;
+    public static final long TALK_CHANNEL_B_ID = 99887789;
+
     private static SessionManager mInstance;
     private Session mActiveSession;
     private final Messenger mMessenger = Messenger.getInstance();
@@ -31,6 +35,16 @@ public class SessionManager {
 
     private SessionManager(){
         mMessenger.register(new MessageListener());
+
+        Session chatRoomA = new Session(99887766, "Chat Room A", Session.SESSION_TYPE_CHAT_ROOM);
+        Session chatRoomB = new Session(99887767, "Chat Room B", Session.SESSION_TYPE_CHAT_ROOM);
+        Session talkChannelA = new Session(99887788, "Talk Channel A", Session.SESSION_TYPE_TALK_CHANNEL);
+        Session talkChannelB = new Session(99887789, "Talk Channel B", Session.SESSION_TYPE_TALK_CHANNEL);
+
+        chatRoomA.saveOrUpdate("sid = ?", "99887766");
+        chatRoomB.saveOrUpdate("sid = ?", "99887767");
+        talkChannelA.saveOrUpdate("sid = ?", "99887788");
+        talkChannelB.saveOrUpdate("sid = ?", "99887789");
     }
 
     public static SessionManager getInstance(){
@@ -40,6 +54,8 @@ public class SessionManager {
         return mInstance;
     }
 
+/* ********************************************************************************************** */
+    // Session related
 /* ********************************************************************************************** */
 
     public Session buildSession(String originatorUid, int... indexes){
@@ -51,17 +67,14 @@ public class SessionManager {
 
         // find receivers from user table and build receiver uid list
         List<String> receivers = new ArrayList<>();
+
         List<User> users = User.findAll(User.class);
         for (int ii = 0; ii < indexes.length; ii++){
             receivers.add(users.get(indexes[ii]).getUid());
         }
         Log.v(TAG, "uids: " + receivers.size());
 
-        // find session from session table
-        mActiveSession = findSession(originatorUid, receivers);
-        if (mActiveSession == null){
-            mActiveSession = new Session(originatorUid, receivers);
-        }
+        mActiveSession = new Session(originatorUid, receivers);
         mActiveSession.setState(Session.SESSION_ACTIVE);
 
         // save into session table
@@ -72,25 +85,38 @@ public class SessionManager {
         return mActiveSession;
     }
 
-    public Session buildSession(long index){
-        Log.v(TAG, "build session: at=" + index);
-        mActiveSession = Session.find(Session.class, index);
+    public void enterChatRoom(String name, String me){
+        Log.d(TAG, "enterChatRoom: " + name);
+        List<Session> ss = Session.where("name = ?", name).find(Session.class);
+        mActiveSession = ss.get(0);
+
+        // update active information
+        mActiveSession.addReceiver(me);
         mActiveSession.setState(Session.SESSION_ACTIVE);
         mActiveSession.dump();
-        return mActiveSession;
+
+        // save back into database
+        mActiveSession.saveOrUpdate("sid = ?",
+                Long.toString(mActiveSession.getSid()));
     }
 
-    public Session findSessionById(long sessionid){
-        Session session = null;
-        // FIXME: 18-3-20, optimize by sql sentence
-        //Session.select("time").where("time = ?", Long.toString(id));
-        for (Session s : Session.findAll(Session.class)){
-            if (s.getSid() == sessionid){
-                session = s;
-                break;
-            }
-        }
-        return session;
+    public void activateSession(String name){
+        List<Session> ss = Session.where("name = ?", name).find(Session.class);
+        mActiveSession = ss.get(0);
+        mActiveSession.setState(Session.SESSION_ACTIVE);
+        // save back into database
+        mActiveSession.saveOrUpdate("sid = ?",
+                Long.toString(mActiveSession.getSid()));
+    }
+
+    public void enterTalkChannel(long sid){
+        Log.d(TAG, "enterTalkChannel: " + sid);
+    }
+
+    public Session findSessionById(long sid){
+        List<Session> ss = Session.where("sid = ?", Long.toString(sid))
+                .find(Session.class);
+        return ss.get(0);
     }
 
     public Session findTemporarySessionByIndex(int index){
@@ -112,30 +138,49 @@ public class SessionManager {
     }
 
     public Session getActiveSession(){
+        if (mActiveSession == null) {
+            List<Session> ss = Session.where("state = ?",
+                    Integer.toString(Session.SESSION_ACTIVE))
+                    .find(Session.class);
+            if (ss.size() == 0){
+                Log.e(TAG, "no Active Session:");
+            } else if (ss.size() > 1){
+                Log.e(TAG, "ERROR: more than one active !!!!");
+            } else {
+                mActiveSession = ss.get(0);
+            }
+        }
         return mActiveSession;
     }
 
-    public void updateActiveSessionState(boolean active){
-        if (active) {
-            mActiveSession.setState(Session.SESSION_ACTIVE);
-        } else {
+    public void resetActiveSession(){
+        if (mActiveSession != null) {
             mActiveSession.setState(Session.SESSION_INACTIVE);
+            mActiveSession.saveOrUpdate("sid = ?",
+                    Long.toString(mActiveSession.getSid()));
             mActiveSession = null;
         }
     }
 
-    public List<Session> getSessionList(){
-        return DataSupport.findAll(Session.class);
-    }
-
-    public List<Session> getSessionList(long[] ids){
-        return DataSupport.findAll(Session.class, ids);
+    public List<Session> getSessionList(int type){
+        List<Session> ss = Session.where("type = ?", Integer.toString(type))
+                .find(Session.class);
+        return ss;
     }
 
     public Session findSession(String originatorUid, List<String> receivers){
+
+        if (originatorUid == null){
+            return null;
+        }
+
+        if (receivers == null || receivers.isEmpty()){
+            return null;
+        }
+
         Session sess = null;
-        // FIXME: 18-3-18 : Here is very performance defect!!!
-        List<Session> list = DataSupport.findAll(Session.class);
+        List<Session> list = Session.where("originator = ?", originatorUid)
+                .find(Session.class);
         for (Session s : list){
             if(s.has(originatorUid, receivers)){
                 sess = s;
@@ -159,34 +204,22 @@ public class SessionManager {
         deleteMessages(ss.getSid());
     }
 
-
 /* ********************************************************************************************** */
-    public List<Packet> getAllMessages(){
-        return Packet.findAll(Packet.class);
-    }
+    // Message and packet
+/* ********************************************************************************************** */
 
-    public List<Packet> getAllMessage(long sessionid){
-        List<Packet> pl = new ArrayList<>();
-        // FIXME: 18-3-20, we should use sql query sentence
-        for(Packet p : Packet.findAll(Packet.class)){
-            if (p.getSessionId() == sessionid){
-                pl.add(p);
-            }
-        }
-
+    public List<Packet> getAllMessages(long sid){
+        Log.v(TAG, "getAllMessages: " + sid);
+        List<Packet> pl = Packet.where("sid = ?", Long.toString(sid))
+                .find(Packet.class);
         return pl;
     }
 
     // FIXME: 18-3-20, we should use sql query sentence
-    public Packet getLastMessage(long sessionId){
+    public Packet getLastMessage(long sid){
         Packet packet = null;
-        List<Packet> pl = new ArrayList<>();
-        for(Packet p : Packet.findAll(Packet.class)){
-            if (p.getSessionId() == sessionId){
-                pl.add(p);
-            }
-        }
-
+        List<Packet> pl = Packet.where("sid = ?", Long.toString(sid))
+                .find(Packet.class);
         if (pl.size() > 0){
             packet = pl.get(pl.size() - 1);
         }
@@ -195,11 +228,17 @@ public class SessionManager {
     }
 
     public void deleteMessages(long sid){
-        Packet.deleteAll(Packet.class, "sessionId = ?",
+        Packet.deleteAll(Packet.class, "sid = ?",
                 Long.toString(sid));
     }
 
 /* ********************************************************************************************** */
+
+    public void sendSession(long sid){
+        Packet p = new Packet();
+        p.setType(Packet.MESSAGE_TYPE_SESSION);
+        p.setSid(sid);
+    }
 
     public void sendText(User originator, String text){
         Log.v(TAG, "send text: " + text);
@@ -207,7 +246,7 @@ public class SessionManager {
 
             // wrap message packet
             Packet p = new Packet();
-            p.setSessionId(mActiveSession.getSid());
+            p.setSid(mActiveSession.getSid());
             p.setType(Packet.MESSAGE_TYPE_TEXT);
             p.setIncoming(false);
             byte[] data = text.getBytes(Packet.DEFAULT_ENCODING_FORMAT);

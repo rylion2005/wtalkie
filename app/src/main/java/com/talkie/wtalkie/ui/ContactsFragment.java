@@ -101,8 +101,8 @@ public class ContactsFragment extends Fragment implements AdapterView.OnItemClic
             Bundle b = new Bundle();
             int[] positions = {position};
             b.putInt("SessionType", Session.SESSION_TYPE_TEMPORARY);
-            b.putString("OriginatorUid", Myself.fromMyself(getActivity()).getUid());
-            b.putIntArray("ReceiverListIndexes", positions);
+            b.putString("Originator", Myself.fromMyself(getActivity()).getUid());
+            b.putIntArray("ReceiverIndexes", positions);
             intent.putExtras(b);
             startActivity(intent);
         } else { //mState == SELECT_STATE_GROUP_TALK

@@ -22,13 +22,13 @@
         android:layout_height="match_parent"
         android:gravity="center_vertical">
         <TextView
-            android:id="@+id/TXV_Originator"
+            android:id="@+id/TXV_SessionName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:paddingStart="4dp"
             android:paddingEnd="4dp"
             android:textSize="18sp"
-            android:text="nick name"/>
+            android:text="Session name"/>
         <TextView
             android:id="@+id/TXV_LastMessage"
             android:layout_width="match_parent"

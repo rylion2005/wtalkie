@@ -32,7 +32,7 @@ import java.util.List;
 public class Session extends DataSupport{
     private static final String TAG = "Session";
     // type
-    public static final int SESSION_TYPE_UNKNOWN = 0xD0;
+    public static final int SESSION_TYPE_UNKNOWN = 0xD0; // 208
     public static final int SESSION_TYPE_CHAT_ROOM = 0xD1;
     public static final int SESSION_TYPE_TALK_CHANNEL = 0xD2;
     public static final int SESSION_TYPE_TEMPORARY = 0xD3;
@@ -40,7 +40,7 @@ public class Session extends DataSupport{
     //public static final int SESSION_TYPE_TEMP_GROUP = 0xD5;
 
     // state
-    public static final int SESSION_NOT_INITIALIZED = 0xDA;
+    public static final int SESSION_NOT_INITIALIZED = 0xDA; // 218
     public static final int SESSION_INACTIVE = 0xDB;
     public static final int SESSION_ACTIVE = 0xDC;
 
@@ -69,6 +69,21 @@ public class Session extends DataSupport{
         this.unreadCount = 0;
         this.type = SESSION_TYPE_UNKNOWN;
         this.name = "default";
+    }
+
+    public Session(long sid, String name, int type){
+        Log.v(TAG, "new fixed session with id :" + sid);
+
+        // auto generated, user can not change!
+        this.sid = sid;
+        this.name = name;
+        this.type = type;
+
+        this.state = SESSION_INACTIVE;
+        this.unreadCount = 0;
+
+        this.time = System.currentTimeMillis();
+        this.originator = "default";
     }
 
     public Session(String originatorUid, List<String> receivers) {
@@ -209,6 +224,10 @@ public class Session extends DataSupport{
 
     public List<String> getReceivers() {
         return receivers;
+    }
+
+    public void addReceiver(String uid){
+        this.receivers.add(uid);
     }
 
     public void setReceivers(List<String> receivers) {
