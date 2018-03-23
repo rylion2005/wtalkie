@@ -55,6 +55,16 @@ public class SessionsFragment extends Fragment
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshViews();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
 
     @Override
     public void onAttach(Context context) {

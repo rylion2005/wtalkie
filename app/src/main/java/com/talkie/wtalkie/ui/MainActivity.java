@@ -26,6 +26,7 @@ public class MainActivity extends BaseActivity {
 
     private static final int MESSAGE_UPDATE_MYSELF = 0xA0;
     private static final int MESSAGE_UPDATE_USERS = 0xA1;
+    private static final int MESSAGE_New_SESSION = 0xA2;
 
     private SessionsFragment mSessionsFragment;
     private ContactsFragment mContactsFragment;

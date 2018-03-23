@@ -6,11 +6,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.litepal.crud.DataSupport;
 
-import com.google.gson.Gson;
 import com.talkie.wtalkie.contacts.User;
 import com.talkie.wtalkie.sockets.Messenger;
 
@@ -35,7 +31,7 @@ public class SessionManager {
     private static SessionManager mInstance;
     private Session mActiveSession;
     private final Messenger mMessenger = Messenger.getInstance();
-    private OnMessageListener mListener;
+    private final List<OnMessageListener> mListeners = new ArrayList<>();
 
 /* ********************************************************************************************** */
 
@@ -62,7 +58,7 @@ public class SessionManager {
 
     public void register(OnMessageListener listener){
         if (listener != null){
-            mListener = listener;
+            mListeners.add(listener);
         }
     }
 
@@ -70,25 +66,26 @@ public class SessionManager {
     // Session related
 /* ********************************************************************************************** */
 
-    public Session buildSession(String originatorUid, int... indexes){
-        Log.v(TAG, "build session: receivers=" + indexes.length);
+    public Session buildSession(String originator, int... indexes){
+        Log.v(TAG, "build session");
 
         if (indexes.length == 0){
             return null;
         }
 
-        // find receivers from user table and build receiver uid list
-        List<String> receivers = new ArrayList<>();
-        List<User> users = User.findAll(User.class);
+        // build users from user table
+        List<String> users = new ArrayList<>();
+        users.add(originator);
+        List<User> allUsers = User.findAll(User.class);
         for (int ii = 0; ii < indexes.length; ii++){
-            receivers.add(users.get(indexes[ii]).getUid());
+            users.add(allUsers.get(indexes[ii]).getUid());
         }
-        Log.v(TAG, "uids: " + receivers.size());
+        Log.v(TAG, "uids: " + users.size());
 
         // find if there is a same user list
-        mActiveSession = findSession(originatorUid, receivers);
+        mActiveSession = findSession(users);
         if (mActiveSession == null) {
-            mActiveSession = new Session(originatorUid, receivers);
+            mActiveSession = new Session(users);
         }
         mActiveSession.setState(Session.SESSION_ACTIVE);
         // save into session table
@@ -102,7 +99,7 @@ public class SessionManager {
         mActiveSession = ss.get(0);
 
         // update active information
-        mActiveSession.addReceiver(me);
+        mActiveSession.addUser(me);
         mActiveSession.setState(Session.SESSION_ACTIVE);
         mActiveSession.dump();
 
@@ -161,27 +158,31 @@ public class SessionManager {
         return ss;
     }
 
-    public Session findSession(String originatorUid, List<String> receivers){
+    public Session findSession(List<String> users){
 
-        if (originatorUid == null){
+        if (users == null || users.isEmpty()){
             return null;
         }
 
-        if (receivers == null || receivers.isEmpty()){
-            return null;
-        }
-
-        Session sess = null;
-        List<Session> list = Session.where("originator = ?", originatorUid)
-                .find(Session.class);
+        Session sesssion = null;
+        List<Session> list = Session.findAll(Session.class);
         for (Session s : list){
-            if(s.has(originatorUid, receivers)){
-                sess = s;
-                Log.v(TAG, "found old session");
+            if(s.has(users)){
+                sesssion = s;
+                Log.v(TAG, "exist a session !");
                 break;
             }
         }
-        return sess;
+        return sesssion;
+    }
+
+    public Session findSession(long sid){
+        Session s = null;
+        List<Session> ss = Session.where("sid = ?", Long.toString(sid)).find(Session.class);
+        if (ss != null && !ss.isEmpty()){
+            s = ss.get(0);
+        }
+        return s;
     }
 
     public void deleteSession(int index){
@@ -195,6 +196,14 @@ public class SessionManager {
 
         // delete all messages in this session
         deleteMessages(ss.getSid());
+    }
+
+    public boolean isPublicChatRoom(long sid){
+        boolean result = false;
+        if (sid == CHAT_ROOM_A_ID || sid == CHAT_ROOM_B_ID){
+            result = true;
+        }
+        return result;
     }
 
 /* ********************************************************************************************** */
@@ -235,14 +244,42 @@ public class SessionManager {
 /* ********************************************************************************************** */
 
     public void sendSession(long sid){
+
+        Session s = findSession(sid);
+        if (s == null){
+            return;
+        }
+
         Packet p = new Packet();
-        p.setType(Packet.MESSAGE_TYPE_SESSION);
         p.setSid(sid);
+        p.setType(Packet.MESSAGE_TYPE_SESSION);
+        p.setIncoming(0);
+        p.setUnread(1);
+        // wrap session to packet
+        byte[] data = s.encode().getBytes();
+        p.setMessageLength(data.length);
+        p.setMessageBody(data);
+        p.setDescription("");
+        Log.v(TAG, ":S: " + p.toJsonString());
+
+        // encode and send message
+        byte[] pb = p.encode();
+        mMessenger.sendText(pb, pb.length);
     }
 
-    public void sendText(User originator, String text){
+    public void sendText(String text){
         Log.v(TAG, "send text: " + text);
         try {
+
+            // if it is 1st message in the session
+            List<Packet> pl = Packet.where("sid = ?",
+                    Long.toString(mActiveSession.getSid()))
+                    .find(Packet.class);
+
+            if (pl.isEmpty() && !isPublicChatRoom(mActiveSession.getSid())){
+                Log.v(TAG, "The first message");
+                sendSession(mActiveSession.getSid());
+            }
 
             // wrap message packet
             Packet p = new Packet();
@@ -276,6 +313,7 @@ public class SessionManager {
 
     public void sendVideo(){}
 
+
 /* ********************************************************************************************** */
 
     class MessageListener implements Messenger.MessageCallback{
@@ -289,14 +327,54 @@ public class SessionManager {
 
             // decode byte buffer
             Packet p = Packet.decode(data, length);
-            p.setIncoming(1);
-            p.setUnread(1);
+            Log.v(TAG, "packet type: " + p.getType());
+            switch (p.getType()){
+                case Packet.MESSAGE_TYPE_SESSION:
+                    Session session = Session.decode(p.getMessageBody(), p.getMessageLength());
+                    session.dump();
+                    // find by sid
+                    Session s = findSession(session.getSid());
+                    if (s == null){ // new session
+                        // find by user list
+                        s = findSession(session.getUsers());
+                        if (s == null) {
+                            // save into database
+                            if (!isPublicChatRoom(session.getSid())) {
+                                Log.v(TAG, "new session incoming");
+                                session.setState(Session.SESSION_INACTIVE);
+                                session.save();
 
-            // save into database table
-            boolean saved = p.save();
-
-            // notify clients
-            mListener.onNewMessage();
+                                for (OnMessageListener l: mListeners){
+                                    l.onNewSession();
+                                }
+                            }
+                        }
+                    }
+                    break;
+                case Packet.MESSAGE_TYPE_BYTE:
+                case Packet.MESSAGE_TYPE_EMOJI:
+                case Packet.MESSAGE_TYPE_TEXT:
+                    p.setIncoming(1);
+                    p.setUnread(1);
+                    p.save();
+                    for (OnMessageListener l: mListeners){
+                        l.onNewMessage();
+                    }
+                    break;
+                case Packet.MESSAGE_TYPE_FILE_UNKOWN:
+                case Packet.MESSAGE_TYPE_FILE_PICTURE:
+                case Packet.MESSAGE_TYPE_FILE_VIDEO:
+                case Packet.MESSAGE_TYPE_FILE_AUDIO:
+                    p.setIncoming(1);
+                    p.setUnread(1);
+                    p.save();
+                    for (OnMessageListener l: mListeners){
+                        l.onNewMessage();
+                    }
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -304,5 +382,6 @@ public class SessionManager {
 
     public interface OnMessageListener{
         void onNewMessage();
+        void onNewSession();
     }
 }

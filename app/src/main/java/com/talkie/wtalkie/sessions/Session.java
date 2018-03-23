@@ -10,7 +10,6 @@ package com.talkie.wtalkie.sessions;
 **
 */
 
-import android.text.TextUtils;
 import android.util.Log;
 import com.google.gson.Gson;
 import com.talkie.wtalkie.contacts.UserManager;
@@ -49,10 +48,13 @@ public class Session extends DataSupport{
     private long time;   // session start time with milliseconds
     private int type;    // session type
     private int state;   // session active state
-    private int unreadCount; // unread message count
-    private String name;     // session name
-    private String originator; // originator uid
-    private final List<String> receivers = new ArrayList<>(); // receivers uid
+    private String name; // session name
+
+    /*
+    *  user uid list
+    *  The first uis is originator
+    */
+    private final List<String> users = new ArrayList<>();
 
 
 /* ********************************************************************************************** */
@@ -63,39 +65,30 @@ public class Session extends DataSupport{
         // auto generated, user can not change!
         this.sid = System.currentTimeMillis();
         this.time = sid;
-
         this.state = SESSION_NOT_INITIALIZED;
-        this.originator = "default";
-        this.unreadCount = 0;
         this.type = SESSION_TYPE_UNKNOWN;
-        this.name = "default";
     }
 
     public Session(long sid, String name, int type){
-        Log.v(TAG, "new fixed session with id :" + sid);
+        Log.v(TAG, "new session with id :" + sid);
 
         // auto generated, user can not change!
         this.sid = sid;
         this.name = name;
         this.type = type;
-
-        this.state = SESSION_INACTIVE;
-        this.unreadCount = 0;
-
         this.time = System.currentTimeMillis();
-        this.originator = "default";
+        this.state = SESSION_INACTIVE;
     }
 
-    public Session(String originatorUid, List<String> receivers) {
-        Log.v(TAG, "new session: " + originatorUid);
+    public Session(List<String> users) {
+        Log.v(TAG, "new session: " + users.size());
 
         // session time and state
         this.sid = System.currentTimeMillis();
         this.time = sid;
         this.state = SESSION_INACTIVE;
-        this.originator = originatorUid;
-        this.receivers.addAll(receivers);
-        buildNameAndType(receivers);
+        this.users.addAll(users);
+        buildNameAndType(users);
     }
 
     public static Session decode(String jsonStr){
@@ -103,27 +96,29 @@ public class Session extends DataSupport{
         return gson.fromJson(jsonStr, Session.class);
     }
 
+    public static Session decode(byte[] bytes, int length){
+        Gson gson = new Gson();
+        String str = new String(bytes, 0, length);
+        return gson.fromJson(str, Session.class);
+    }
+
 /* ********************************************************************************************** */
 
-    public boolean has(String uid, List<String> receivers){
+    public boolean has(List<String> users){
         boolean existed = false;
 
-        if (TextUtils.isEmpty(uid) || receivers == null || receivers.isEmpty()){
+        if (users == null || users.isEmpty()){
             Log.e(TAG, "parameter has null or empty!");
             return false;
         }
 
-        if (!this.originator.equals(uid)){
+        if (this.users.size() != users.size()){
             return false;
         }
 
-        if (this.receivers.size() != receivers.size()){
-            return false;
-        }
-
-        for (String r : receivers){
+        for (String r : users){
             int count = 0;
-            for (String now : this.receivers){
+            for (String now : this.users){
                 count++;
                 if (r.equals(now)) {
                     existed = true;
@@ -133,7 +128,7 @@ public class Session extends DataSupport{
                 }
             }
 
-            if (count >= this.receivers.size() && !existed){
+            if (count >= this.users.size() && !existed){
                 break;
             }
         }
@@ -154,8 +149,8 @@ public class Session extends DataSupport{
 
     private void buildNameAndType(List<String> uids){
         Log.v(TAG, "buildNameAndType: " + uids.size());
-        if (uids == null || uids.size() == 0){
-            Log.v(TAG, "no any receiver !!!");
+        if (uids.isEmpty()){
+            Log.v(TAG, "no any users !!!");
             return;
         }
 
@@ -163,7 +158,7 @@ public class Session extends DataSupport{
         int size = uids.size();
         for (int i = 0; i < size; i++){
             sb.append(UserManager.findByUid(uids.get(i)).getNick());
-            if (i < size -1){
+            if (i < size - 1){
                 sb.append(",");
             }
         }
@@ -205,31 +200,15 @@ public class Session extends DataSupport{
         this.state = state;
     }
 
-    public String getOriginator() {
-        return originator;
+    public List<String> getUsers() {
+        return users;
     }
 
-    public int getUnreadCount() {
-        return unreadCount;
+    public void addUser(String uid){
+        this.users.add(uid);
     }
 
-    public void setUnreadCount(int unreadCount) {
-        this.unreadCount = unreadCount;
-    }
-
-    public void setOriginator(String originator) {
-        this.originator = originator;
-    }
-
-    public List<String> getReceivers() {
-        return receivers;
-    }
-
-    public void addReceiver(String uid){
-        this.receivers.add(uid);
-    }
-
-    public void setReceivers(List<String> receivers) {
-        this.receivers.addAll(receivers);
+    public void addUsers(List<String> users) {
+        this.users.addAll(users);
     }
 }

@@ -125,7 +125,7 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
             case R.id.BTN_Action:
                 // Send to network
                 String input = mEDTText.getText().toString();
-                mSessionManager.sendText(Myself.fromMyself(this), input);
+                mSessionManager.sendText(input);
                 // Show in list view
                 showTextMessage(false, input);
                 mEDTText.getText().clear();
@@ -334,6 +334,11 @@ public class ChatActivity extends BaseActivity implements View.OnClickListener,
         public void onNewMessage() {
             Log.v(TAG, "onNewMessage");
             mHandler.sendEmptyMessage(MESSAGE_INCOMING);
+        }
+
+        @Override
+        public void onNewSession() {
+
         }
     }
 }

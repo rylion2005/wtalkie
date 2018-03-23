@@ -13,6 +13,9 @@ import android.util.Log;
 import com.google.gson.Gson;
 import org.litepal.crud.DataSupport;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 /*
 ** ********************************************************************************
@@ -45,17 +48,13 @@ public class Packet extends DataSupport {
 
     // relation database key
     private long pid;       // packet id, main key, same as time
-    private long sid; // session sid, session main key
-
+    private long sid;       // session sid, session main key
     // meta data
     private long time;
-    private int incoming;     // 0 - incoming, 1- outgoing
+    private int incoming;       // 0 - incoming, 1- outgoing
     private int unread;         // unread status: 0 - read; 1 - unread
     private int type;           // message type
     private String description; // message summary description
-    private int fileSize;       // file size only for file message
-    private String filePath;    // file path only for file message
-    private String fileName;    // file name only for file message
     private int messageLength;  // byte message length
     private byte[] messageBody; // byte message body
 
@@ -66,15 +65,11 @@ public class Packet extends DataSupport {
         // user can not change!
         this.pid = System.currentTimeMillis();
         this.time = pid;
-
         this.sid = 0;
-        this.description = "default";
         this.incoming = 0;
         this.unread = 1;
+        this.description = "";
         this.type = MESSAGE_TYPE_UNKNOWN;
-        this.fileSize = 0;
-        this.filePath = "default";
-        this.fileName = "default";
         this.messageLength = 0;
         this.messageBody = null;
     }
@@ -86,21 +81,8 @@ public class Packet extends DataSupport {
         *  it will affect new packet structure;
         */
         Packet src = g.fromJson(new String(bytes, 0, length), Packet.class);
-
         Packet p = new Packet();
-        p.setSid(src.getSid());
-        p.setPid(src.getPid());
-        p.setType(src.getType());
-        p.setTime(src.getTime());
-        p.setFileName(src.getFileName());
-        p.setFilePath(src.getFilePath());
-        p.setFileSize(src.getFileSize());
-        p.setMessageLength(src.getMessageLength());
-        p.setDescription(src.getDescription());
-        p.setMessageBody(src.getMessageBody());
-        p.setIncoming(src.getIncoming());
-        p.setUnread(src.getUnread());
-
+        p.clone(src);
         return p;
     }
 
@@ -113,6 +95,18 @@ public class Packet extends DataSupport {
     public String toJsonString(){
         Gson gson = new Gson();
         return gson.toJson(this, Packet.class);
+    }
+
+    public void clone(Packet p){
+        this.pid = p.getPid();
+        this.time = p.getTime();
+        this.sid = p.getSid();
+        this.incoming = p.getIncoming();
+        this.unread = p.getUnread();
+        this.type = p.getType();
+        this.description = p.getDescription();
+        this.messageLength = p.getMessageLength();
+        this.messageBody = p.getMessageBody().clone();
     }
 
 
@@ -158,14 +152,6 @@ public class Packet extends DataSupport {
         this.incoming = incoming;
     }
 
-    public String getFilePath() {
-        return filePath;
-    }
-
-    public void setFilePath(String filePath) {
-        this.filePath = filePath;
-    }
-
     public String getDescription() {
         return description;
     }
@@ -186,22 +172,6 @@ public class Packet extends DataSupport {
         this.type = type;
     }
 
-    public int getFileSize() {
-        return fileSize;
-    }
-
-    public void setFileSize(int fileSize) {
-        this.fileSize = fileSize;
-    }
-
-    public String getFileName() {
-        return fileName;
-    }
-
-    public void setFileName(String fileName) {
-        this.fileName = fileName;
-    }
-
     public int getMessageLength() {
         return messageLength;
     }
@@ -216,5 +186,55 @@ public class Packet extends DataSupport {
 
     public void setMessageBody(byte[] messageBody) {
         this.messageBody = messageBody;
+    }
+
+/* ********************************************************************************************** */
+
+    public class FileInfo{
+        private String name;
+        private String path;
+        private int size;
+
+        public byte[] encode(){
+            Gson gson = new Gson();
+            return gson.toJson(this, FileInfo.class).getBytes();
+        }
+
+        public void decode(byte[] bytes, int length){
+            Gson gson = new Gson();
+            String str = new String(bytes, 0, length);
+            FileInfo fi = gson.fromJson(str, FileInfo.class);
+            this.clone(fi);
+        }
+
+        public void clone(FileInfo fi){
+            this.name = fi.getName();
+            this.path = fi.getPath();
+            this.size = fi.getSize();
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getPath() {
+            return path;
+        }
+
+        public void setPath(String path) {
+            this.path = path;
+        }
+
+        public int getSize() {
+            return size;
+        }
+
+        public void setSize(int size) {
+            this.size = size;
+        }
     }
 }
